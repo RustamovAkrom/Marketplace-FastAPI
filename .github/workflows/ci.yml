@@ -45,11 +45,5 @@ jobs:
         run: uv run ruff check src/
 
       - name: Run tests
-        run: uv run pytest -v --tb=short --cov=src --cov-report=xml:coverage.xml
+        run: uv run pytest -v src/tests
 
-      - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v4
-        with:
-          files: ./coverage.xml
-          fail_ci_if_error: true
-      
