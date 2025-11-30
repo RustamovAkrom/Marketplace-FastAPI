@@ -18,7 +18,7 @@ class BaseAppSettings(BaseSettings):
     DEBUG: bool = True
     RELOAD: bool = True
 
-    SECRET_KEY: str
+    SECRET_KEY: str = "SECRET_KEY"
     LOG_LEVEL: str = "INFO"
 
     CORS_ORIGINS: list[str] = ["*"]

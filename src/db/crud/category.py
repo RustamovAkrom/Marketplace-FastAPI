@@ -1,3 +1,5 @@
+from typing import Sequence
+
 from fastapi import Depends
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -11,7 +13,7 @@ class CategoryCRUD:
     def __init__(self, session: AsyncSession = Depends(get_db_session)):
         self.session = session
 
-    async def get_all(self) -> list[Category]:
+    async def get_all(self) -> Sequence[Category]:
         stmt = select(Category)
         result = await self.session.execute(stmt)
         return result.scalars().all()

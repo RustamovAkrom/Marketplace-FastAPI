@@ -24,14 +24,22 @@ class APIException(Exception):
         super().__init__(self.detail)
 
 
-def api_exception_handler(request: Request, exc: APIException) -> JSONResponse:
-    content = {
-        "code": exc.code,
-        "detail": exc.detail,
-        "values": exc.values,
-    }
-    return JSONResponse(status_code=exc.status_code, content=content)
+async def api_exception_handler(request: Request, exc: Exception) -> JSONResponse:
+    """
+    Обработчик для FastAPI, принимает Exception (требование Starlette),
+    проверяет на APIException и возвращает JSONResponse.
+    """
+    if isinstance(exc, APIException):
+        content = {
+            "code": exc.code,
+            "detail": exc.detail,
+            "values": exc.values,
+        }
+        return JSONResponse(status_code=exc.status_code, content=content)
+
+    # fallback для остальных исключений
+    return JSONResponse(status_code=500, content={"code": "error", "detail": str(exc)})
 
 
 def register_exception_handlers(app: FastAPI) -> None:
-    app.add_exception_handler(APIException, api_exception_handler)
+    app.add_exception_handler(Exception, api_exception_handler)

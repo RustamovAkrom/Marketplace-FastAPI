@@ -1,6 +1,6 @@
 from typing import Optional
 
-from pydantic import BaseModel, EmailStr, Field
+from pydantic import BaseModel, ConfigDict, EmailStr, Field
 
 from db.models.users import UserRole
 
@@ -31,8 +31,7 @@ class UserOut(UserBaseScheme):
     is_active: bool = Field(..., description="Indicates if the user is active")
     role: UserRole = Field(..., description="The role assigned to the user")
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class UserResponse(BaseModel):
@@ -53,8 +52,7 @@ class UserUpdate(UserBaseScheme):
         None, description="Indicates if the user is active"
     )
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class UserInDB(UserBaseScheme):
@@ -62,8 +60,7 @@ class UserInDB(UserBaseScheme):
     hashed_password: str = Field(..., description="The hashed password of the user")
     is_active: bool = Field(..., description="Indicates if the user is active")
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 __all__ = (
