@@ -21,6 +21,9 @@ jobs:
         uses: actions/setup-python@v4
         with:
           python-version: ${{ matrix.python-version }}
+      
+      - name: Clear pre-commit cache
+        run: pre-commit clean
 
       - name: Install UV
         run: |
@@ -49,3 +52,4 @@ jobs:
         with:
           files: ./coverage.xml
           fail_ci_if_error: true
+      
