@@ -20,3 +20,6 @@ async def login_user(
     user_service: UserService = Depends(),
 ) -> UserResponse:
     return await user_service.login(data)
+
+
+__all__ = ("router",)
