@@ -19,9 +19,14 @@ class Product(BaseModel):
     in_stock: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
 
-    category_id: Mapped[int] = mapped_column(ForeignKey("categories.id"))
+    owner_id: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=False)
+    category_id: Mapped[int] = mapped_column(
+        ForeignKey("categories.id"), nullable=False
+    )
     brand_id: Mapped[int | None] = mapped_column(ForeignKey("brands.id"), nullable=True)
-    seller_id: Mapped[int] = mapped_column(ForeignKey("sellers.id"), nullable=True)
+    seller_id: Mapped[int | None] = mapped_column(
+        ForeignKey("sellers.id"), nullable=True
+    )
 
     images: Mapped[list["ProductImage"]] = relationship(back_populates="product")
     seller: Mapped["Seller"] = relationship(back_populates="products")

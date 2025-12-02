@@ -1,45 +1,25 @@
-from typing import Any
-
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, status
 from fastapi.responses import JSONResponse
 
 
 class APIException(Exception):
-    status_code: int = 500
-    default_code: str = "error"
-    default_detail: str = "Something went wrong."
-
     def __init__(
         self,
-        detail: str | None = None,
-        code: str | None = None,
-        values: dict[str, Any] | None = None,
-        status_code: int | None = None,
+        message: str,
+        *,
+        status_code: int = status.HTTP_400_BAD_REQUEST,
+        details: dict | None = None,
     ):
-        self.detail = detail or self.default_detail
-        self.code = code or self.default_code
-        self.values = values or {}
-        self.status_code = status_code or self.status_code
+        self.message = message
+        self.status_code = status_code
+        self.details = details or {}
 
-        super().__init__(self.detail)
-
-
-async def api_exception_handler(request: Request, exc: Exception) -> JSONResponse:
-    """
-    Обработчик для FastAPI, принимает Exception (требование Starlette),
-    проверяет на APIException и возвращает JSONResponse.
-    """
-    if isinstance(exc, APIException):
-        content = {
-            "code": exc.code,
-            "detail": exc.detail,
-            "values": exc.values,
-        }
-        return JSONResponse(status_code=exc.status_code, content=content)
-
-    # fallback для остальных исключений
-    return JSONResponse(status_code=500, content={"code": "error", "detail": str(exc)})
+    def to_dict(self):
+        return {"message": self.message, "details": self.details}
 
 
-def register_exception_handlers(app: FastAPI) -> None:
-    app.add_exception_handler(Exception, api_exception_handler)
+def register_error_handler(app: FastAPI):
+
+    @app.exception_handler(APIException)
+    async def api_exception_handler(_, exc: APIException):
+        return JSONResponse(status_code=exc.status_code, content=exc.to_dict())

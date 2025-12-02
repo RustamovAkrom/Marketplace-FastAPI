@@ -4,7 +4,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from db.dependencies import get_db_session
 from db.models.users import User
-from schemas.user import UserCreate
+from schemas.auth import RegistrationScheme
 
 
 class UserCRUD:
@@ -21,10 +21,11 @@ class UserCRUD:
         result = await self.session.execute(stmt)
         return result.scalars().first()
 
-    async def create(self, data: UserCreate, hashed_password: str) -> User:
+    async def create(self, data: RegistrationScheme, hashed_password: str) -> User:
+        user_data = data.dict()
+        user_data.pop("password", None)
         user = User(
-            email=data.email,
-            username=data.username,
+            **user_data,
             hashed_password=hashed_password,
         )
         self.session.add(user)

@@ -1,24 +1,30 @@
 from fastapi import APIRouter, Depends
 
-from schemas.user import UserCreate, UserLogin, UserOut, UserResponse
+from schemas.auth import (
+    LoginOutScheme,
+    LoginScheme,
+    RegisterOutScheme,
+    RegistrationScheme,
+)
+from schemas.user import UserCreateScheme
 from services.user_service import UserService
 
 router = APIRouter()
 
 
-@router.post("/register", response_model=UserOut)
+@router.post("/register", response_model=UserCreateScheme)
 async def register_user(
-    data: UserCreate,
+    data: RegistrationScheme,
     user_service: UserService = Depends(),
-) -> UserOut:
+) -> RegisterOutScheme:
     return await user_service.register(data)
 
 
-@router.post("/login", response_model=UserResponse)
+@router.post("/login", response_model=LoginOutScheme)
 async def login_user(
-    data: UserLogin,
+    data: LoginScheme,
     user_service: UserService = Depends(),
-) -> UserResponse:
+) -> LoginOutScheme:
     return await user_service.login(data)
 
 

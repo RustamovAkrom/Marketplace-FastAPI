@@ -1,3 +1,5 @@
+import enum
+
 from sqlalchemy import ForeignKey, Integer, Numeric, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -7,16 +9,28 @@ from .product import Product
 from .users import User
 
 
+class OrderStatus(str, enum.Enum):
+    pending = "pending"
+    paid = "paid"
+    shipped = "shipped"
+    done = "done"
+    canceled = "canceled"
+
+
 class Order(BaseModel):
     __tablename__ = "orders"
 
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
     total_amount: Mapped[float] = mapped_column(Numeric(10, 2), nullable=False)
 
-    status: Mapped[str] = mapped_column(String(50), default="pending")
+    status: Mapped[OrderStatus] = mapped_column(
+        String(50), nullable=False, default=OrderStatus.pending
+    )
 
-    items: Mapped[list["OrderItem"]] = relationship(back_populates="order")
-    user: Mapped["User"] = relationship()
+    items: Mapped[list["OrderItem"]] = relationship(
+        back_populates="order", cascade="all, delete-orphan"
+    )
+    user: Mapped["User"] = relationship(back_populates="orders")
 
     def __repr__(self):
         return f"<Order(id={self.id}, user_id={self.user_id}, total_amount={self.total_amount}, status={self.status})>"

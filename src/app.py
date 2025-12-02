@@ -4,7 +4,7 @@ from fastapi.responses import ORJSONResponse
 
 from api.routers import api_router
 from core.config import settings
-from core.exceptions import register_exception_handlers
+from core.exceptions import register_error_handler
 from core.lifespan import lifespan
 from core.logger import configure_logger
 
@@ -26,7 +26,7 @@ def create_app() -> FastAPI:
     configure_logger()
 
     # Register exception handlers
-    register_exception_handlers(app)
+    register_error_handler(app)
 
     # Include API router
     app.include_router(api_router, prefix="/api/v1")

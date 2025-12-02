@@ -1,6 +1,6 @@
 import enum
 
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.sql.sqltypes import String
 
 from db.base import BaseModel
@@ -27,6 +27,7 @@ class User(BaseModel):
     role: Mapped[UserRole] = mapped_column(
         String(50), nullable=False, default=UserRole.buyer
     )
+    orders: Mapped[list["Order"]] = relationship(back_populates="user")  # type: ignore # noqa: F821
 
     def __repr__(self):
         return f"<User id={self.id} email={self.email} full_name={self.full_name}>"

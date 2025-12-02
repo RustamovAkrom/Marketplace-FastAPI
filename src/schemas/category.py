@@ -1,10 +1,12 @@
-from pydantic import BaseModel
+from typing import Optional
+
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class CategoryBaseScheme(BaseModel):
-    name: str
-    slug: str
-    description: str | None = None
+    name: str = Field(..., min_length=2, max_length=150)
+    slug: str = Field(..., min_length=2, max_length=200)
+    description: Optional[str] = None
 
 
 class CategoryCreateScheme(CategoryBaseScheme):
@@ -18,8 +20,7 @@ class CategoryUpdateScheme(CategoryBaseScheme):
 class CategoryOutScheme(CategoryBaseScheme):
     id: int
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 __all__ = (
