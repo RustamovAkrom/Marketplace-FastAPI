@@ -37,3 +37,11 @@ class TokenResponseScheme(BaseModel):
 class LoginOutScheme(BaseModel):
     user: RegisterOutScheme
     tokens: TokenResponseScheme
+
+
+class LogoutScheme(BaseModel):
+    refresh_token: str
+
+
+class LogoutResponseScheme(BaseModel):
+    detail: str = "Successfully logged out"

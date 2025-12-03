@@ -14,7 +14,7 @@ from sqlalchemy.ext.asyncio import (
 
 from src.app import create_app
 from src.core.config import get_app_settings
-from src.db.dependencies import get_db_session
+from src.db.dependencies.sessions import get_db_session
 from src.db.meta import meta
 from src.db.models import load_all_models
 

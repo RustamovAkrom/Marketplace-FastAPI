@@ -2,7 +2,7 @@ from fastapi import Depends
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from db.dependencies import get_db_session
+from db.dependencies.sessions import get_db_session
 from db.models.users import User
 from schemas.auth import RegistrationScheme
 

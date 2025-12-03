@@ -4,7 +4,7 @@ from fastapi import Depends
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.db.dependencies import get_db_session
+from src.db.dependencies.sessions import get_db_session
 from src.db.models.category import Category
 from src.schemas.category import CategoryCreateScheme, CategoryUpdateScheme
 
