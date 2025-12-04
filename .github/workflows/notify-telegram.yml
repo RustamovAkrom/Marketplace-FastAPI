@@ -9,6 +9,7 @@ on:
 jobs:
   notify:
     runs-on: ubuntu-latest
+    environment: env
     steps:
       - name: Send Telegram message
         uses: appleboy/telegram-action@master
