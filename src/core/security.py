@@ -1,7 +1,8 @@
 import uuid
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Any, Dict, Optional, Union
 
+from fastapi import HTTPException
 from jose import ExpiredSignatureError, JWTError, jwt
 from passlib.context import CryptContext
 
@@ -22,7 +23,7 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
 
 # helpers
 def _now() -> datetime:
-    return datetime.utcnow()
+    return datetime.now(timezone.utc)
 
 
 def _jti() -> str:
@@ -36,31 +37,35 @@ def create_access_token(
     expires_delta: timedelta | None = None,
 ) -> str:
     """
-    Create access token.
+    Create access token (JWT) with proper iat and exp timestamps.
     """
 
     if isinstance(subject, dict):
-        payload_access: Dict[str, Any] = subject.copy()
+        payload: Dict[str, Any] = subject.copy()
     else:
-        payload_access: Dict[str, Any] = {"sub": str(subject)}  # type: ignore
+        payload: Dict[str, Any] = {"sub": str(subject)}  # type: ignore
 
-    payload_access.setdefault("type", "access")
-    payload_access.setdefault("jti", _jti())
-    payload_access.setdefault("iat", int(_now().timestamp()))
+    payload.setdefault("type", "access")
+    payload.setdefault("jti", _jti())
+
+    now_ts = int(_now().timestamp())
+    payload["iat"] = now_ts
 
     if extra:
-        payload_access.update(extra)
+        payload.update(extra)
 
-    if expires_delta:
-        exp = _now() + expires_delta
-    else:
-        exp = _now() + timedelta(minutes=settings.JWT_ACCESS_TOKEN_EXPIRE_MINUTES or 15)
-
-    payload_access["exp"] = int(exp.timestamp())
-
-    return jwt.encode(
-        payload_access, settings.SECRET_KEY, algorithm=settings.JWT_ALGORITHM
+    exp_ts = int(
+        (
+            _now()
+            + (
+                expires_delta
+                or timedelta(minutes=settings.PASSWORD_RESET_TOKEN_EXPIRE_MINUTES)
+            )
+        ).timestamp()
     )
+    payload["exp"] = exp_ts
+
+    return jwt.encode(payload, settings.SECRET_KEY, algorithm=settings.JWT_ALGORITHM)
 
 
 def create_refresh_token(
@@ -69,41 +74,46 @@ def create_refresh_token(
     expires_delta: timedelta | None = None,
 ) -> str:
     """
-    Create refresh token.
+    Create refresh token (JWT) with proper iat and exp timestamps.
     """
 
     if isinstance(subject, dict):
-        payload_refresh: Dict[str, Any] = subject.copy()
+        payload: Dict[str, Any] = subject.copy()
     else:
-        payload_refresh: Dict[str, Any] = {"sub": str(subject)}  # type: ignore
+        payload: Dict[str, Any] = {"sub": str(subject)}  # type: ignore
 
-    payload_refresh.setdefault("type", "refresh")
-    payload_refresh.setdefault("jti", _jti())
-    payload_refresh.setdefault("iat", int(_now().timestamp()))
+    payload.setdefault("type", "refresh")
+    payload.setdefault("jti", _jti())
+    payload["iat"] = int(_now().timestamp())
 
     if extra:
-        payload_refresh.update(extra)
+        payload.update(extra)
 
-    if expires_delta:
-        exp = _now() + expires_delta
-    else:
-        exp = _now() + timedelta(days=settings.JWT_REFRESH_TOKEN_EXPIRES_DAYS or 30)
-
-    payload_refresh["exp"] = int(exp.timestamp())
-
-    return jwt.encode(
-        payload_refresh, settings.SECRET_KEY, algorithm=settings.JWT_ALGORITHM
+    exp_ts = int(
+        (
+            _now()
+            + (expires_delta or timedelta(days=settings.JWT_REFRESH_TOKEN_EXPIRES_DAYS))
+        ).timestamp()
     )
+    payload["exp"] = exp_ts
+
+    return jwt.encode(payload, settings.SECRET_KEY, algorithm=settings.JWT_ALGORITHM)
 
 
 def decode_token(token: str) -> dict:
+    """
+    Decode JWT token. By default, disables exp verification for internal inspection.
+    Use jose.decode(token, ..., options={"verify_exp": True}) when verifying token lifetime.
+    """
     try:
         payload = jwt.decode(
-            token, settings.SECRET_KEY, algorithms=[settings.JWT_ALGORITHM]
+            token,
+            settings.SECRET_KEY,
+            algorithms=[settings.JWT_ALGORITHM],
+            options={"verify_exp": True},
         )
         return payload
     except ExpiredSignatureError:
-        raise ExpiredSignatureError("Token has expired")
-
+        raise HTTPException(status_code=400, detail="Token has expired")
     except JWTError:
-        raise JWTError("Invalid token")
+        raise HTTPException(status_code=400, detail="Invalid token")

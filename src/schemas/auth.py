@@ -34,6 +34,14 @@ class TokenResponseScheme(BaseModel):
     token_type: str = "bearer"
 
 
+class TokenScheme(BaseModel):
+    token: str
+
+
+class RefreshTokenScheme(BaseModel):
+    refresh_token: str
+
+
 class LoginOutScheme(BaseModel):
     user: RegisterOutScheme
     tokens: TokenResponseScheme
@@ -45,3 +53,12 @@ class LogoutScheme(BaseModel):
 
 class LogoutResponseScheme(BaseModel):
     detail: str = "Successfully logged out"
+
+
+class ForgotPasswordScheme(BaseModel):
+    email: EmailStr
+
+
+class PasswordResetScheme(BaseModel):
+    token: str
+    new_password: str

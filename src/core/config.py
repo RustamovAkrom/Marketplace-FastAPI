@@ -28,6 +28,7 @@ class BaseAppSettings(BaseSettings):
     JWT_ALGORITHM: str = "HS256"
     JWT_ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 8
     JWT_REFRESH_TOKEN_EXPIRES_DAYS: int = 7
+    PASSWORD_RESET_TOKEN_EXPIRE_MINUTES: int = 15
 
     # DATABASE_URL: str
     DB_ENGINE: str = "sqlite"

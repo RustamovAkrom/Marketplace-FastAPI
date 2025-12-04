@@ -22,19 +22,8 @@ class UserUpdateScheme(BaseModel):
     username: Optional[str | None] = None
 
 
-class ChangePasswordScheme(BaseModel):
-    old_password: str
-    new_password: str
-
-
-class ForgotPasswordScheme(BaseModel):
-    email: EmailStr
-
-
 __all__ = (
     "UserBaseScheme",
     "UserCreateScheme",
     "UserUpdateScheme",
-    "ChangePasswordScheme",
-    "ForgotPasswordScheme",
 )

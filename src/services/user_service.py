@@ -1,8 +1,9 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 
-from fastapi import Depends, status
+from fastapi import Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from core.config import settings
 from core.exceptions import APIException
 from core.security import (
     create_access_token,
@@ -109,6 +110,107 @@ class UserService:
         )
 
         return LogoutResponseScheme(detail="Successfully logged out")
+
+    async def refresh_access_token(self, refresh_token: str) -> dict:
+        """
+        Issue new access token using valid refresh token
+        """
+
+        try:
+            payload = decode_token(refresh_token)
+        except Exception:
+            raise HTTPException(status_code=401, detail="Invalid refresh token")
+
+        if payload.get("type") != "refresh":
+            raise HTTPException(status_code=401, detail="Invalid token type")
+
+        user_id = int(payload.get("sub"))
+        user = await self.user_crud.get_by_id(user_id)
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+
+        access_token = create_access_token(
+            subject=user.id,
+            expires_delta=timedelta(minutes=settings.JWT_ACCESS_TOKEN_EXPIRE_MINUTES),
+            extra={"type": "access"},
+        )
+        return {"access_token": access_token, "token_type": "bearer"}
+
+    async def verify_email(self, token: str):
+        """
+        Verify email using a token (from email link)
+        """
+
+        try:
+            payload = decode_token(token)
+        except Exception:
+            raise HTTPException(status_code=400, detail="Invalid token or expired")
+
+        if payload.get("type") != "email_verification":
+            raise HTTPException(status_code=400, detail="Invalid token type")
+
+        user_id = int(payload.get("sub"))
+        user = await self.user_crud.get_by_id(user_id)
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+
+        await self.user_crud.mark_email_verified(user)
+        return {"msg": "Email verified successfully"}
+
+    async def verify_phone(self, token: str):
+        """
+        Verify phone using a token (from SMS link/code)
+        """
+
+        try:
+            payload = decode_token(token)
+        except Exception:
+            raise HTTPException(status_code=400, detail="Invalid token or expired")
+
+        if payload.get("type") != "phone_verification":
+            raise HTTPException(status_code=400, detail="Invalid token type")
+
+        user_id = int(payload.get("sub"))
+        user = await self.user_crud.get_by_id(user_id)
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+
+        await self.user_crud.mark_phone_verified(user)
+        return {"msg": "Phone verified successfully"}
+
+    async def resend_verification(self, user_id: int, type_: str):
+        """
+        Resend verification token to user email or phone
+        """
+
+        user = await self.user_crud.get_by_id(user_id)
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+
+        if type_ == "email":
+            token = create_access_token(
+                subject=user.id,
+                expires_delta=timedelta(
+                    minutes=settings.PASSWORD_RESET_TOKEN_EXPIRE_MINUTES
+                ),
+                extra={"type": "email_verification"},
+            )
+            # TODO: send email with token
+
+        elif type_ == "phone":
+            token = create_access_token(
+                subject=user.id,
+                expires_delta=timedelta(
+                    minutes=settings.PASSWORD_RESET_TOKEN_EXPIRE_MINUTES
+                ),
+                extra={"type": "phone_verification"},
+            )
+            # TODO: send SMS with token
+
+        else:
+            raise HTTPException(status_code=400, detail="Invalid verification type")
+
+        return {"msg": f"{type_.capitalize()} verification token sent", "token": token}
 
 
 __all__ = ("UserService",)
