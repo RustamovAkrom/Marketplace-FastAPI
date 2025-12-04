@@ -11,12 +11,28 @@ jobs:
     runs-on: ubuntu-latest
     environment: env
     steps:
-      - name: Send Telegram message
+      - name: Push Notification
+        if: github.event_name == 'push'
         uses: appleboy/telegram-action@master
         with:
           to: ${{ secrets.TELEGRAM_CHAT_ID }}
           token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           message: |
-            Событие в репозитории: ${{ github.repository }}
-            Тип события: ${{ github.event_name }}
-            Автор: ${{ github.actor }}
+            📌 **Push Event**
+            Repository: ${{ github.repository }}
+            Branch: ${{ github.ref }}
+            Author: ${{ github.actor }}
+
+      - name: Pull Request Notification
+        if: github.event_name == 'pull_request'
+        uses: appleboy/telegram-action@master
+        with:
+          to: ${{ secrets.TELEGRAM_CHAT_ID }}
+          token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          message: |
+            🔀 **Pull Request Event**
+            Repository: ${{ github.repository }}
+            Action: ${{ github.event.action }}
+            PR: #${{ github.event.number }} - ${{ github.event.pull_request.title }}
+            Author: ${{ github.event.pull_request.user.login }}
+            URL: ${{ github.event.pull_request.html_url }}
