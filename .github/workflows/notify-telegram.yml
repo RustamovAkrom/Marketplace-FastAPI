@@ -2,37 +2,36 @@ name: Telegram Notifications
 
 on:
   push:
-    branches:
-      - main
+    branches: [ main ]
   pull_request:
 
 jobs:
   notify:
     runs-on: ubuntu-latest
-    environment: env
     steps:
       - name: Push Notification
         if: github.event_name == 'push'
         uses: appleboy/telegram-action@master
         with:
-          to: ${{ secrets.TELEGRAM_CHAT_ID }}
           token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          to: ${{ secrets.TELEGRAM_CHAT_ID }}
+          format: markdown
           message: |
-            📌 **Push Event**
-            Repository: ${{ github.repository }}
-            Branch: ${{ github.ref }}
-            Author: ${{ github.actor }}
+            📌 *Push Event*  
+            Repository: [${{ github.repository }}](https://github.com/${{ github.repository }})  
+            Branch: `${{ github.ref }}`  
+            Author: `${{ github.actor }}`
 
       - name: Pull Request Notification
         if: github.event_name == 'pull_request'
         uses: appleboy/telegram-action@master
         with:
-          to: ${{ secrets.TELEGRAM_CHAT_ID }}
           token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          to: ${{ secrets.TELEGRAM_CHAT_ID }}
+          format: markdown
           message: |
-            🔀 **Pull Request Event**
-            Repository: ${{ github.repository }}
-            Action: ${{ github.event.action }}
-            PR: #${{ github.event.number }} - ${{ github.event.pull_request.title }}
-            Author: ${{ github.event.pull_request.user.login }}
-            URL: ${{ github.event.pull_request.html_url }}
+            🔀 *Pull Request Event*  
+            Repository: [${{ github.repository }}](https://github.com/${{ github.repository }})  
+            Action: `${{ github.event.action }}`  
+            PR: [#${{ github.event.number }} - ${{ github.event.pull_request.title }}](${{ github.event.pull_request.html_url }})  
+            Author: `${{ github.event.pull_request.user.login }}`
