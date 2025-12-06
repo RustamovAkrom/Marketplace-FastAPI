@@ -12,7 +12,6 @@ jobs:
     strategy:
       matrix:
         python-version: [3.12]
-
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
@@ -45,5 +44,8 @@ jobs:
         run: uv run ruff check src/
 
       - name: Run tests
+        env:
+          # Для CI подставляем тестовые значения
+          MAIL_USERNAME: test@example.com
+          MAIL_PASSWORD: testpass
         run: uv run pytest -v src/tests
-
