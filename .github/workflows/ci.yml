@@ -48,4 +48,4 @@ jobs:
           # Для CI подставляем тестовые значения
           MAIL_USERNAME: test@example.com
           MAIL_PASSWORD: testpass
-        run: uv run pytest -v src/tests
+        run: uv run pytest -v tests
