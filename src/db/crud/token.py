@@ -1,31 +1,35 @@
 from datetime import datetime
 from typing import Optional
 
+from fastapi import Depends
 from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from db.models.revoked_token import RevokedToken
+from db.dependencies.sessions import get_db_session
+from db.models.revoked_tokens import RevokedToken
 
 
 class TokenCRUD:
-    def __init__(self, sessino: AsyncSession) -> None:
-        self.sessino = sessino
+    def __init__(self, session: AsyncSession = Depends(get_db_session)) -> None:
+        self.session = session
 
-    async def add(
+    async def create(
         self,
         jti: str,
         token_type: str,
         expires_at: datetime,
         user_id: Optional[int] = None,
-    ) -> None:
+    ) -> RevokedToken:
         revoked = RevokedToken(
             jti=jti, token_type=token_type, expires_at=expires_at, user_id=user_id
         )
-        self.sessino.add(revoked)
-        await self.sessino.commit()
+        self.session.add(revoked)
+        await self.session.commit()
+        await self.session.refresh(revoked)
+        return revoked
 
     async def exists(self, jti: str) -> bool:
-        stmt = await self.sessino.execute(
+        stmt = await self.session.execute(
             select(RevokedToken).where(RevokedToken.jti == jti)
         )
         return stmt.scalar_one_or_none() is not None
@@ -33,7 +37,7 @@ class TokenCRUD:
     async def cleanup_expired(self) -> int:
         now = datetime.utcnow()
         stmt = delete(RevokedToken).where(RevokedToken.expires_at < now)
-        res = await self.sessino.execute(stmt)
-        await self.sessino.commit()
+        res = await self.session.execute(stmt)
+        await self.session.commit()
         # The result.rowcount may be driver-dependent; we return 0/1+ best-effort
         return getattr(res, "rowcount", 0)

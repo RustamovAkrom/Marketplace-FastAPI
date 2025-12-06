@@ -2,7 +2,7 @@ from typing import List, Optional
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from db.models.order import OrderStatus
+from src.db.models.orders import OrderStatus
 
 
 class OrderItemBaseScheme(BaseModel):
@@ -25,7 +25,7 @@ class OrderItemOutScheme(OrderItemBaseScheme):
 class OrderBaseScheme(BaseModel):
     user_id: int
     total_amount: float = Field(..., ge=0)
-    status: OrderStatus = OrderStatus.pending
+    status: OrderStatus = OrderStatus.PENDING_PAYMENT
 
 
 class OrderCreateScheme(OrderBaseScheme):

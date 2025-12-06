@@ -1,48 +1,70 @@
-# from fastapi import APIRouter, Depends, HTTPException
-# from sqlalchemy.ext.asyncio import AsyncSession
+from typing import List
 
-# from src.db.dependencies import get_db_session
-# from src.db.crud.category import CategoryCRUD
-# from src.schemas.category import CategoryCreateScheme, CategoryUpdateScheme, CategoryOutScheme
+from fastapi import APIRouter, Depends, HTTPException, status
 
-# router = APIRouter()
+from db.crud.category import CategoryCRUD
+from db.dependencies.auth import require_admin
+from schemas.category import (
+    CategoryCreateScheme,
+    CategoryOutScheme,
+    CategoryUpdateScheme,
+)
 
-# @router.get("/", response_model=list[CategoryOutScheme])
-# async def list_categories(
-#     category: AsyncSession = Depends(get_session)):
-#     return await category_crud.get_all(session)
+router = APIRouter()
 
-# @router.post("/", response_model=CategoryOutScheme)
-# async def create_category(data: CategoryCreate, session: AsyncSession = Depends(get_session)):
-#     existing = await category_crud.get_by_slug(session, data.slug)
-#     if existing:
-#         raise HTTPException(status_code=400, detail="Slug already exists")
-#     return await category_crud.create(session, data)
 
-# @router.get("/{category_id}", response_model=CategoryOutScheme)
-# async def get_category(category_id: int, session: AsyncSession = Depends(get_session)):
-#     category = await category_crud.get_by_id(session, category_id)
-#     if not category:
-#         raise HTTPException(status_code=404, detail="Not found")
-#     return category
+@router.get("/", response_model=List[CategoryOutScheme])
+async def get_categories(categoryies_crud: CategoryCRUD = Depends(CategoryCRUD)):
+    return await categoryies_crud.get_all()
 
-# @router.put("/{category_id}", response_model=CategoryOutScheme)
-# async def update_category(
-#     category_id: int,
-#     data: CategoryUpdate,
-#     session: AsyncSession = Depends(get_session)
-# ):
-#     category = await category_crud.get_by_id(session, category_id)
-#     if not category:
-#         raise HTTPException(status_code=404, detail="Not found")
 
-#     return await category_crud.update(session, category, data)
+@router.get("/{slug}", response_model=CategoryOutScheme)
+async def get_category(
+    slug: str, categoryies_crud: CategoryCRUD = Depends(CategoryCRUD)
+):
+    category = await categoryies_crud.get_by_slug(slug)
+    if not category:
+        raise HTTPException(status_code=404, detail="Category not found")
+    return category
 
-# @router.delete("/{category_id}")
-# async def delete_category(category_id: int, session: AsyncSession = Depends(get_session)):
-#     category = await category_crud.get_by_id(session, category_id)
-#     if not category:
-#         raise HTTPException(status_code=404, detail="Not found")
 
-#     await category_crud.delete(session, category)
-#     return {"status": "deleted"}
+@router.post(
+    "/",
+    response_model=CategoryOutScheme,
+    status_code=status.HTTP_201_CREATED,
+    dependencies=[Depends(require_admin)],
+)
+async def create_category(
+    data: CategoryCreateScheme, categoryies_crud: CategoryCRUD = Depends(CategoryCRUD)
+):
+    return await categoryies_crud.create(data)
+
+
+@router.put(
+    "/{slug}", response_model=CategoryOutScheme, dependencies=[Depends(require_admin)]
+)
+async def update_category(
+    slug: str,
+    data: CategoryUpdateScheme,
+    categoryies_crud: CategoryCRUD = Depends(CategoryCRUD),
+):
+    category = await categoryies_crud.get_by_slug(slug)
+    if not category:
+        raise HTTPException(status_code=404, detail="Category not found")
+
+    raise await categoryies_crud.update(category, data)
+
+
+@router.delete(
+    "/{category_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+    dependencies=[Depends(require_admin)],
+)
+async def delete_category(
+    slug: str, categoryies_crud: CategoryCRUD = Depends(CategoryCRUD)
+):
+    category = await categoryies_crud.get_by_slug(slug)
+    if not category:
+        raise HTTPException(status_code=404, detail="Category not found")
+
+    await categoryies_crud.delete(category)

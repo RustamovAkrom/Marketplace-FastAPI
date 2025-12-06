@@ -9,6 +9,7 @@ class RegistrationScheme(BaseModel):
     full_name: Optional[str] = None
     username: str = Field(..., min_length=3, max_length=50)
     email: EmailStr
+    phone: str = Field(..., min_length=13, max_length=20)
     password: str = Field(..., min_length=8)
 
 
@@ -17,6 +18,7 @@ class RegisterOutScheme(BaseModel):
     full_name: Optional[str] = None
     username: str
     email: EmailStr
+    phone: str
     is_active: bool
     role: UserRole
 

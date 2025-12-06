@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 from sqlalchemy import ForeignKey, String
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from db.base import BaseModel
 
@@ -15,8 +17,10 @@ class Brand(BaseModel):
         ForeignKey("brands.id"), nullable=True
     )
 
+    products: Mapped[list["Product"]] = relationship("Product", back_populates="brand")  # type: ignore # noqa: F821
+
     def __repr__(self):
-        return f"<Brand(name={self.name}, description={self.description})>"
+        return f"<Brand(name={self.name}"
 
 
 __all__ = ("Brand",)

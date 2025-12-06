@@ -24,9 +24,13 @@ from schemas.auth import (
     RegistrationScheme,
     TokenResponseScheme,
 )
+from tasks.user_tasks import (
+    send_email_verification_task,
+    send_phone_verification_task,
+)
 
 
-class UserService:
+class AuthService:
     def __init__(
         self,
         session: AsyncSession = Depends(get_db_session),
@@ -47,8 +51,25 @@ class UserService:
                 "Username already taken", status_code=status.HTTP_409_CONFLICT
             )
 
+        if await self.user_crud.get_by_phone(data.phone):
+            raise APIException(
+                "Phone number already taken", status_code=status.HTTP_400_BAD_REQUEST
+            )
+
         hashed_password = hash_password(data.password)
         user = await self.user_crud.create(data, hashed_password)
+
+        token = create_access_token(
+            subject=user.id,
+            expires_delta=timedelta(
+                minutes=settings.PASSWORD_RESET_TOKEN_EXPIRE_MINUTES
+            ),
+            extra={"type": "email_verification"},
+        )
+
+        if settings.ENV == "prod":
+            # Send verification email to background
+            await send_email_verification_task.delay(user.email, token)
 
         return RegisterOutScheme.model_validate(user)
 
@@ -136,7 +157,7 @@ class UserService:
         )
         return {"access_token": access_token, "token_type": "bearer"}
 
-    async def verify_email(self, token: str):
+    async def verify_email(self, token: str) -> dict:
         """
         Verify email using a token (from email link)
         """
@@ -157,7 +178,7 @@ class UserService:
         await self.user_crud.mark_email_verified(user)
         return {"msg": "Email verified successfully"}
 
-    async def verify_phone(self, token: str):
+    async def verify_phone(self, token: str) -> dict:
         """
         Verify phone using a token (from SMS link/code)
         """
@@ -178,7 +199,7 @@ class UserService:
         await self.user_crud.mark_phone_verified(user)
         return {"msg": "Phone verified successfully"}
 
-    async def resend_verification(self, user_id: int, type_: str):
+    async def resend_verification(self, user_id: int, type_: str) -> dict:
         """
         Resend verification token to user email or phone
         """
@@ -195,7 +216,12 @@ class UserService:
                 ),
                 extra={"type": "email_verification"},
             )
-            # TODO: send email with token
+
+            if settings.ENV == "prod":
+                # Send verification token
+                await send_email_verification_task.delay(user.email, token)
+
+            return {"msg": "Verification email sent", "token": token}
 
         elif type_ == "phone":
             token = create_access_token(
@@ -205,6 +231,14 @@ class UserService:
                 ),
                 extra={"type": "phone_verification"},
             )
+
+            if settings.ENV == "prod":
+                # Simple numeric code
+                code = "123456"  # Leater will add code generator function
+                await send_phone_verification_task.delay(user.phone, code)
+
+            return {"msg": "Verification SMS sent", "code": code}
+
             # TODO: send SMS with token
 
         else:
@@ -213,4 +247,4 @@ class UserService:
         return {"msg": f"{type_.capitalize()} verification token sent", "token": token}
 
 
-__all__ = ("UserService",)
+__all__ = ("AuthService",)

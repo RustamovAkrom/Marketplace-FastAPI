@@ -1,8 +1,8 @@
 """empty message
 
-Revision ID: 4327695db01f
+Revision ID: 0312bc27af6c
 Revises:
-Create Date: 2025-12-04 19:28:30.915751
+Create Date: 2025-12-06 18:06:06.884568
 
 """
 
@@ -12,7 +12,7 @@ import sqlalchemy as sa
 from alembic import op
 
 # revision identifiers, used by Alembic.
-revision: str = '4327695db01f'
+revision: str = '0312bc27af6c'
 down_revision: Union[str, Sequence[str], None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -58,15 +58,17 @@ def upgrade() -> None:
             nullable=False,
         ),
         sa.PrimaryKeyConstraint('id', name=op.f('pk_categories')),
-        sa.UniqueConstraint('name', name=op.f('uq_categories_name')),
-        sa.UniqueConstraint('slug', name=op.f('uq_categories_slug')),
     )
+    op.create_index(op.f('ix_categories_name'), 'categories', ['name'], unique=True)
+    op.create_index(op.f('ix_categories_slug'), 'categories', ['slug'], unique=True)
     op.create_table(
         'promo_codes',
         sa.Column('code', sa.String(length=50), nullable=False),
         sa.Column('discount_percent', sa.Integer(), nullable=False),
-        sa.Column('discount_amount', sa.Numeric(precision=10, scale=2), nullable=True),
+        sa.Column('discount_amount', sa.Numeric(precision=12, scale=2), nullable=True),
         sa.Column('is_active', sa.Boolean(), nullable=False),
+        sa.Column('valid_from', sa.DateTime(), nullable=True),
+        sa.Column('valid_to', sa.DateTime(), nullable=True),
         sa.Column('id', sa.Integer(), autoincrement=True, nullable=False),
         sa.Column('created_at', sa.DateTime(), nullable=False),
         sa.Column(
@@ -76,8 +78,8 @@ def upgrade() -> None:
             nullable=False,
         ),
         sa.PrimaryKeyConstraint('id', name=op.f('pk_promo_codes')),
-        sa.UniqueConstraint('code', name=op.f('uq_promo_codes_code')),
     )
+    op.create_index(op.f('ix_promo_codes_code'), 'promo_codes', ['code'], unique=True)
     op.create_table(
         'revoked_tokens',
         sa.Column('jti', sa.String(length=255), nullable=False),
@@ -113,7 +115,7 @@ def upgrade() -> None:
         sa.Column('is_phone_verified', sa.Boolean(), nullable=False),
         sa.Column(
             'role',
-            sa.Enum('admin', 'seller', 'buyer', name='user_role_enum'),
+            sa.Enum('admin', 'seller', 'buyer', 'courier', name='user_role_enum'),
             nullable=False,
         ),
         sa.Column('id', sa.Integer(), autoincrement=True, nullable=False),
@@ -125,10 +127,10 @@ def upgrade() -> None:
             nullable=False,
         ),
         sa.PrimaryKeyConstraint('id', name=op.f('pk_users')),
-        sa.UniqueConstraint('email', name=op.f('uq_users_email')),
         sa.UniqueConstraint('phone', name=op.f('uq_users_phone')),
-        sa.UniqueConstraint('username', name=op.f('uq_users_username')),
     )
+    op.create_index(op.f('ix_users_email'), 'users', ['email'], unique=True)
+    op.create_index(op.f('ix_users_username'), 'users', ['username'], unique=True)
     op.create_table(
         'carts',
         sa.Column('user_id', sa.Integer(), nullable=False),
@@ -144,12 +146,13 @@ def upgrade() -> None:
             ['user_id'], ['users.id'], name=op.f('fk_carts_user_id_users')
         ),
         sa.PrimaryKeyConstraint('id', name=op.f('pk_carts')),
-        sa.UniqueConstraint('user_id', name=op.f('uq_carts_user_id')),
     )
+    op.create_index(op.f('ix_carts_user_id'), 'carts', ['user_id'], unique=True)
     op.create_table(
         'orders',
         sa.Column('user_id', sa.Integer(), nullable=False),
-        sa.Column('total_amount', sa.Numeric(precision=10, scale=2), nullable=False),
+        sa.Column('total_amount', sa.Numeric(precision=12, scale=2), nullable=False),
+        sa.Column('currency', sa.String(length=10), nullable=False),
         sa.Column('status', sa.String(length=50), nullable=False),
         sa.Column('id', sa.Integer(), autoincrement=True, nullable=False),
         sa.Column('created_at', sa.DateTime(), nullable=False),
@@ -164,6 +167,7 @@ def upgrade() -> None:
         ),
         sa.PrimaryKeyConstraint('id', name=op.f('pk_orders')),
     )
+    op.create_index(op.f('ix_orders_user_id'), 'orders', ['user_id'], unique=False)
     op.create_table(
         'sellers',
         sa.Column('user_id', sa.Integer(), nullable=False),
@@ -181,15 +185,18 @@ def upgrade() -> None:
             ['user_id'], ['users.id'], name=op.f('fk_sellers_user_id_users')
         ),
         sa.PrimaryKeyConstraint('id', name=op.f('pk_sellers')),
-        sa.UniqueConstraint('user_id', name=op.f('uq_sellers_user_id')),
     )
+    op.create_index(
+        op.f('ix_sellers_shop_name'), 'sellers', ['shop_name'], unique=False
+    )
+    op.create_index(op.f('ix_sellers_user_id'), 'sellers', ['user_id'], unique=True)
     op.create_table(
         'products',
         sa.Column('title', sa.String(length=255), nullable=False),
         sa.Column('slug', sa.String(length=255), nullable=False),
         sa.Column('description', sa.Text(), nullable=True),
-        sa.Column('price', sa.Numeric(precision=10, scale=2), nullable=False),
-        sa.Column('old_price', sa.Numeric(precision=10, scale=2), nullable=True),
+        sa.Column('price', sa.Numeric(precision=12, scale=2), nullable=False),
+        sa.Column('old_price', sa.Numeric(precision=12, scale=2), nullable=True),
         sa.Column('in_stock', sa.Boolean(), nullable=False),
         sa.Column('is_active', sa.Boolean(), nullable=False),
         sa.Column('owner_id', sa.Integer(), nullable=False),
@@ -219,56 +226,21 @@ def upgrade() -> None:
             ['seller_id'], ['sellers.id'], name=op.f('fk_products_seller_id_sellers')
         ),
         sa.PrimaryKeyConstraint('id', name=op.f('pk_products')),
-        sa.UniqueConstraint('slug', name=op.f('uq_products_slug')),
     )
-    op.create_table(
-        'cart_items',
-        sa.Column('cart_id', sa.Integer(), nullable=False),
-        sa.Column('product_id', sa.Integer(), nullable=False),
-        sa.Column('quantity', sa.Integer(), nullable=False),
-        sa.Column('price', sa.Numeric(precision=10, scale=2), nullable=False),
-        sa.Column('id', sa.Integer(), autoincrement=True, nullable=False),
-        sa.Column('created_at', sa.DateTime(), nullable=False),
-        sa.Column(
-            'updated_at',
-            sa.DateTime(),
-            server_default=sa.text('(CURRENT_TIMESTAMP)'),
-            nullable=False,
-        ),
-        sa.ForeignKeyConstraint(
-            ['cart_id'], ['carts.id'], name=op.f('fk_cart_items_cart_id_carts')
-        ),
-        sa.ForeignKeyConstraint(
-            ['product_id'],
-            ['products.id'],
-            name=op.f('fk_cart_items_product_id_products'),
-        ),
-        sa.PrimaryKeyConstraint('id', name=op.f('pk_cart_items')),
+    op.create_index(
+        op.f('ix_products_brand_id'), 'products', ['brand_id'], unique=False
     )
-    op.create_table(
-        'order_items',
-        sa.Column('order_id', sa.Integer(), nullable=False),
-        sa.Column('product_id', sa.Integer(), nullable=False),
-        sa.Column('quantity', sa.Integer(), nullable=False),
-        sa.Column('price', sa.Numeric(precision=10, scale=2), nullable=False),
-        sa.Column('id', sa.Integer(), autoincrement=True, nullable=False),
-        sa.Column('created_at', sa.DateTime(), nullable=False),
-        sa.Column(
-            'updated_at',
-            sa.DateTime(),
-            server_default=sa.text('(CURRENT_TIMESTAMP)'),
-            nullable=False,
-        ),
-        sa.ForeignKeyConstraint(
-            ['order_id'], ['orders.id'], name=op.f('fk_order_items_order_id_orders')
-        ),
-        sa.ForeignKeyConstraint(
-            ['product_id'],
-            ['products.id'],
-            name=op.f('fk_order_items_product_id_products'),
-        ),
-        sa.PrimaryKeyConstraint('id', name=op.f('pk_order_items')),
+    op.create_index(
+        op.f('ix_products_category_id'), 'products', ['category_id'], unique=False
     )
+    op.create_index(
+        op.f('ix_products_owner_id'), 'products', ['owner_id'], unique=False
+    )
+    op.create_index(
+        op.f('ix_products_seller_id'), 'products', ['seller_id'], unique=False
+    )
+    op.create_index(op.f('ix_products_slug'), 'products', ['slug'], unique=True)
+    op.create_index(op.f('ix_products_title'), 'products', ['title'], unique=False)
     op.create_table(
         'product_images',
         sa.Column('url', sa.String(length=500), nullable=False),
@@ -287,6 +259,44 @@ def upgrade() -> None:
             name=op.f('fk_product_images_product_id_products'),
         ),
         sa.PrimaryKeyConstraint('id', name=op.f('pk_product_images')),
+    )
+    op.create_index(
+        op.f('ix_product_images_product_id'),
+        'product_images',
+        ['product_id'],
+        unique=False,
+    )
+    op.create_table(
+        'product_variants',
+        sa.Column('sku', sa.String(length=100), nullable=False),
+        sa.Column('product_id', sa.Integer(), nullable=False),
+        sa.Column('attributes', sa.String(length=500), nullable=True),
+        sa.Column('price', sa.Numeric(precision=12, scale=2), nullable=False),
+        sa.Column('stock', sa.Integer(), nullable=False),
+        sa.Column('is_active', sa.Boolean(), nullable=False),
+        sa.Column('id', sa.Integer(), autoincrement=True, nullable=False),
+        sa.Column('created_at', sa.DateTime(), nullable=False),
+        sa.Column(
+            'updated_at',
+            sa.DateTime(),
+            server_default=sa.text('(CURRENT_TIMESTAMP)'),
+            nullable=False,
+        ),
+        sa.ForeignKeyConstraint(
+            ['product_id'],
+            ['products.id'],
+            name=op.f('fk_product_variants_product_id_products'),
+        ),
+        sa.PrimaryKeyConstraint('id', name=op.f('pk_product_variants')),
+    )
+    op.create_index(
+        op.f('ix_product_variants_product_id'),
+        'product_variants',
+        ['product_id'],
+        unique=False,
+    )
+    op.create_index(
+        op.f('ix_product_variants_sku'), 'product_variants', ['sku'], unique=True
     )
     op.create_table(
         'reviews',
@@ -310,25 +320,114 @@ def upgrade() -> None:
         ),
         sa.PrimaryKeyConstraint('id', name=op.f('pk_reviews')),
     )
+    op.create_index(
+        op.f('ix_reviews_product_id'), 'reviews', ['product_id'], unique=False
+    )
+    op.create_index(op.f('ix_reviews_user_id'), 'reviews', ['user_id'], unique=False)
+    op.create_table(
+        'cart_items',
+        sa.Column('cart_id', sa.Integer(), nullable=False),
+        sa.Column('variant_id', sa.Integer(), nullable=False),
+        sa.Column('quantity', sa.Integer(), nullable=False),
+        sa.Column('price', sa.Numeric(precision=12, scale=2), nullable=False),
+        sa.Column('id', sa.Integer(), autoincrement=True, nullable=False),
+        sa.Column('created_at', sa.DateTime(), nullable=False),
+        sa.Column(
+            'updated_at',
+            sa.DateTime(),
+            server_default=sa.text('(CURRENT_TIMESTAMP)'),
+            nullable=False,
+        ),
+        sa.ForeignKeyConstraint(
+            ['cart_id'], ['carts.id'], name=op.f('fk_cart_items_cart_id_carts')
+        ),
+        sa.ForeignKeyConstraint(
+            ['variant_id'],
+            ['product_variants.id'],
+            name=op.f('fk_cart_items_variant_id_product_variants'),
+        ),
+        sa.PrimaryKeyConstraint('id', name=op.f('pk_cart_items')),
+    )
+    op.create_index(
+        op.f('ix_cart_items_cart_id'), 'cart_items', ['cart_id'], unique=False
+    )
+    op.create_index(
+        op.f('ix_cart_items_variant_id'), 'cart_items', ['variant_id'], unique=False
+    )
+    op.create_table(
+        'order_items',
+        sa.Column('order_id', sa.Integer(), nullable=False),
+        sa.Column('variant_id', sa.Integer(), nullable=False),
+        sa.Column('quantity', sa.Integer(), nullable=False),
+        sa.Column('price', sa.Numeric(precision=12, scale=2), nullable=False),
+        sa.Column('id', sa.Integer(), autoincrement=True, nullable=False),
+        sa.Column('created_at', sa.DateTime(), nullable=False),
+        sa.Column(
+            'updated_at',
+            sa.DateTime(),
+            server_default=sa.text('(CURRENT_TIMESTAMP)'),
+            nullable=False,
+        ),
+        sa.ForeignKeyConstraint(
+            ['order_id'], ['orders.id'], name=op.f('fk_order_items_order_id_orders')
+        ),
+        sa.ForeignKeyConstraint(
+            ['variant_id'],
+            ['product_variants.id'],
+            name=op.f('fk_order_items_variant_id_product_variants'),
+        ),
+        sa.PrimaryKeyConstraint('id', name=op.f('pk_order_items')),
+    )
+    op.create_index(
+        op.f('ix_order_items_order_id'), 'order_items', ['order_id'], unique=False
+    )
+    op.create_index(
+        op.f('ix_order_items_variant_id'), 'order_items', ['variant_id'], unique=False
+    )
     # ### end Alembic commands ###
 
 
 def downgrade() -> None:
     """Downgrade schema."""
     # ### commands auto generated by Alembic - please adjust! ###
-    op.drop_table('reviews')
-    op.drop_table('product_images')
+    op.drop_index(op.f('ix_order_items_variant_id'), table_name='order_items')
+    op.drop_index(op.f('ix_order_items_order_id'), table_name='order_items')
     op.drop_table('order_items')
+    op.drop_index(op.f('ix_cart_items_variant_id'), table_name='cart_items')
+    op.drop_index(op.f('ix_cart_items_cart_id'), table_name='cart_items')
     op.drop_table('cart_items')
+    op.drop_index(op.f('ix_reviews_user_id'), table_name='reviews')
+    op.drop_index(op.f('ix_reviews_product_id'), table_name='reviews')
+    op.drop_table('reviews')
+    op.drop_index(op.f('ix_product_variants_sku'), table_name='product_variants')
+    op.drop_index(op.f('ix_product_variants_product_id'), table_name='product_variants')
+    op.drop_table('product_variants')
+    op.drop_index(op.f('ix_product_images_product_id'), table_name='product_images')
+    op.drop_table('product_images')
+    op.drop_index(op.f('ix_products_title'), table_name='products')
+    op.drop_index(op.f('ix_products_slug'), table_name='products')
+    op.drop_index(op.f('ix_products_seller_id'), table_name='products')
+    op.drop_index(op.f('ix_products_owner_id'), table_name='products')
+    op.drop_index(op.f('ix_products_category_id'), table_name='products')
+    op.drop_index(op.f('ix_products_brand_id'), table_name='products')
     op.drop_table('products')
+    op.drop_index(op.f('ix_sellers_user_id'), table_name='sellers')
+    op.drop_index(op.f('ix_sellers_shop_name'), table_name='sellers')
     op.drop_table('sellers')
+    op.drop_index(op.f('ix_orders_user_id'), table_name='orders')
     op.drop_table('orders')
+    op.drop_index(op.f('ix_carts_user_id'), table_name='carts')
     op.drop_table('carts')
+    op.drop_index(op.f('ix_users_username'), table_name='users')
+    op.drop_index(op.f('ix_users_email'), table_name='users')
     op.drop_table('users')
     op.drop_index(op.f('ix_revoked_tokens_user_id'), table_name='revoked_tokens')
     op.drop_index(op.f('ix_revoked_tokens_jti'), table_name='revoked_tokens')
     op.drop_table('revoked_tokens')
+    op.drop_index(op.f('ix_promo_codes_code'), table_name='promo_codes')
     op.drop_table('promo_codes')
+    op.drop_index(op.f('ix_categories_slug'), table_name='categories')
+    op.drop_index(op.f('ix_categories_name'), table_name='categories')
     op.drop_table('categories')
     op.drop_table('brands')
     # ### end Alembic commands ###

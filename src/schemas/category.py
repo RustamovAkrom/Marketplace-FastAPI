@@ -13,8 +13,10 @@ class CategoryCreateScheme(CategoryBaseScheme):
     pass
 
 
-class CategoryUpdateScheme(CategoryBaseScheme):
-    pass
+class CategoryUpdateScheme(BaseModel):
+    name: Optional[str] = None
+    slug: Optional[str] = None
+    description: Optional[str] = None
 
 
 class CategoryOutScheme(CategoryBaseScheme):

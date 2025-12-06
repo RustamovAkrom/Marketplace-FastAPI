@@ -9,6 +9,7 @@ from db.crud.token import TokenCRUD
 from db.crud.user import UserCRUD
 from db.dependencies.sessions import get_db_session
 from schemas.auth import ForgotPasswordScheme, PasswordResetScheme
+from tasks.send_reset_password import send_reset_password_task
 
 
 class PasswordService:
@@ -17,8 +18,8 @@ class PasswordService:
         session: AsyncSession = Depends(get_db_session),
     ):
         self.session = session
-        self.user_crud = UserCRUD(self.session)
-        self.token_crud = TokenCRUD(self.session)
+        self.user_crud = UserCRUD(session)
+        self.token_crud = TokenCRUD(session)
 
     async def forgot_password(self, data: ForgotPasswordScheme) -> dict:
 
@@ -34,8 +35,8 @@ class PasswordService:
             extra={"type": "password_reset"},
         )
 
-        # TODO: sending email user with reset_token
-        # Example: send_email(user.email, reset_token)
+        # Send verification link to reset password
+        await send_reset_password_task.delay(user.email, reset_token)
 
         return {"msg": "Password reset link sent", "token": reset_token}
 
@@ -56,3 +57,12 @@ class PasswordService:
 
         await self.user_crud.update_password(user, data.new_password)
         return {"msg": "Password updated successfully"}
+
+
+async def get_password_service(
+    session: AsyncSession = Depends(get_db_session),
+) -> PasswordService:
+    return PasswordService(session)
+
+
+__all__ = ("PasswordService", "get_password_service")
