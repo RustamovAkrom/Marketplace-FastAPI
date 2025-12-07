@@ -95,7 +95,9 @@ Below is the list of core technologies and dependencies used in this project, ba
 ---
 
 ## 🗄️ Database SQL Diagram
+
 ![](/docs/media/diagram.png)
+
 > Project SQL diagram overview
 
 ### Core Tables
@@ -245,4 +247,4 @@ pytest -vv
 
 ## 📄 License
 
-MIT License.
+MIT License
