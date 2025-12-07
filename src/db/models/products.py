@@ -9,6 +9,7 @@ from db.base import BaseModel
 
 class Product(BaseModel):
     __tablename__ = "products"
+
     title: Mapped[str] = mapped_column(String(255), nullable=False, index=True)
     slug: Mapped[str] = mapped_column(
         String(255), unique=True, nullable=False, index=True
@@ -21,9 +22,6 @@ class Product(BaseModel):
     in_stock: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
 
-    owner_id: Mapped[int] = mapped_column(
-        ForeignKey("users.id"), nullable=False, index=True
-    )
     category_id: Mapped[int] = mapped_column(
         ForeignKey("categories.id"), nullable=False, index=True
     )
@@ -41,30 +39,29 @@ class Product(BaseModel):
     variants: Mapped[list["ProductVariant"]] = relationship(
         "ProductVariant", back_populates="product", cascade="all, delete-orphan"
     )
-    seller: Mapped["Seller"] = relationship("Seller", back_populates="products")  # type: ignore # noqa: F821
+
     category: Mapped["Category"] = relationship("Category", back_populates="products")  # type: ignore # noqa: F821
     brand: Mapped["Brand"] = relationship("Brand", back_populates="products")  # type: ignore # noqa: F821
+    seller: Mapped["Seller"] = relationship("Seller", back_populates="products")  # type: ignore # noqa: F821
 
 
 class ProductImage(BaseModel):
     __tablename__ = "product_images"
+
     url: Mapped[str] = mapped_column(String(500), nullable=False)
     product_id: Mapped[int] = mapped_column(ForeignKey("products.id"), index=True)
     product: Mapped["Product"] = relationship("Product", back_populates="images")
 
 
 class ProductVariant(BaseModel):
-    """
-    For SKU/size/color handling and inventory per SKU.
-    """
-
     __tablename__ = "product_variants"
+
     sku: Mapped[str] = mapped_column(
         String(100), unique=True, nullable=False, index=True
     )
     product_id: Mapped[int] = mapped_column(ForeignKey("products.id"), index=True)
     attributes: Mapped[str | None] = mapped_column(
-        String(500), nullable=True
+        String(500), nullable=True  # could be JSON string
     )  # e.g. JSON string: {"color":"red","size":"M"}
     price: Mapped[float] = mapped_column(Numeric(12, 2), nullable=False)
     stock: Mapped[int] = mapped_column(Integer, nullable=False, default=0)

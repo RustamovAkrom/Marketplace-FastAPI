@@ -17,7 +17,10 @@ class Category(BaseModel):
     )
     description: Mapped[str | None] = mapped_column(Text, nullable=True)
 
-    products: Mapped[list["Product"]] = relationship("Product", back_populates="category")  # type: ignore # noqa: F821
+    products: Mapped[list["Product"]] = relationship("Product", back_populates="category", cascade="all, delete-orphan")  # type: ignore # noqa: F821
+
+    def __repr__(self) -> str:
+        return f"<Category id={self.id} name={self.name}>"
 
 
 __all__ = ("Category",)

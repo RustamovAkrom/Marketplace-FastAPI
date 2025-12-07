@@ -1,6 +1,5 @@
-from typing import List
-
 from fastapi import APIRouter, Depends, HTTPException, status
+from sqlalchemy.exc import IntegrityError
 
 from db.crud.category import CategoryCRUD
 from db.dependencies.auth import require_admin
@@ -10,10 +9,10 @@ from schemas.category import (
     CategoryUpdateScheme,
 )
 
-router = APIRouter()
+router = APIRouter(prefix="/categories", tags=["Categories"])
 
 
-@router.get("/", response_model=List[CategoryOutScheme])
+@router.get("/", response_model=CategoryOutScheme)
 async def get_categories(categoryies_crud: CategoryCRUD = Depends(CategoryCRUD)):
     return await categoryies_crud.get_all()
 
@@ -37,7 +36,15 @@ async def get_category(
 async def create_category(
     data: CategoryCreateScheme, categoryies_crud: CategoryCRUD = Depends(CategoryCRUD)
 ):
-    return await categoryies_crud.create(data)
+    try:
+        return await categoryies_crud.create(data)
+    except HTTPException:
+        raise
+    except IntegrityError:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Slug or name already exists",
+        )
 
 
 @router.put(

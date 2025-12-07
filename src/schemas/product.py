@@ -19,6 +19,19 @@ class ProductImageOutScheme(ProductImageBaseScheme):
     model_config = ConfigDict(from_attributes=True)
 
 
+class ProductVariantCreateScheme(BaseModel):
+    sku: str
+    attributes: Optional[str] = None
+    price: float
+    stock: int
+
+
+class ProductVariantsOutScheme(ProductVariantCreateScheme):
+    id: int
+
+    model_config = ConfigDict(from_attributes=True)
+
+
 # * Product *
 class ProductBaseScheme(BaseModel):
     title: str = Field(..., min_length=2, max_length=255)
@@ -31,11 +44,12 @@ class ProductBaseScheme(BaseModel):
     is_stock: bool = True
     is_active: bool = True
 
-    owner_id: int
     category_id: int
-
     brand_id: Optional[int] = None
     seller_id: Optional[int] = None
+
+    images: Optional[List[ProductImageOutScheme]] = []
+    variants: Optional[List[ProductVariantsOutScheme]] = []
 
 
 class ProductCreateScheme(ProductBaseScheme):
@@ -65,6 +79,8 @@ class ProductOutScheme(ProductBaseScheme):
 __all__ = (
     "ProductImageBaseScheme",
     "ProductImageCreateScheme",
+    "ProductVariantCreateScheme",
+    "ProductVariantsOutScheme",
     "ProductImageOutScheme",
     "ProductBaseScheme",
     "ProductCreateScheme",

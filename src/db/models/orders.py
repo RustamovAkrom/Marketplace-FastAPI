@@ -22,6 +22,7 @@ class OrderStatus(str, enum.Enum):
 
 class Order(BaseModel):
     __tablename__ = "orders"
+
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), index=True)
     total_amount: Mapped[float] = mapped_column(Numeric(12, 2), nullable=False)
     currency: Mapped[str] = mapped_column(String(10), nullable=False, default="USD")
@@ -33,10 +34,14 @@ class Order(BaseModel):
         "OrderItem", back_populates="order", cascade="all, delete-orphan"
     )
     user: Mapped["User"] = relationship("User", back_populates="orders")  # type: ignore # noqa: F821
+    delivery: Mapped["Delivery"] = relationship(  # type: ignore # noqa: F821
+        "Delivery", back_populates="order", uselist=False
+    )
 
 
 class OrderItem(BaseModel):
     __tablename__ = "order_items"
+
     order_id: Mapped[int] = mapped_column(ForeignKey("orders.id"), index=True)
     variant_id: Mapped[int] = mapped_column(
         ForeignKey("product_variants.id"), index=True

@@ -9,6 +9,7 @@ from db.base import BaseModel
 
 class Review(BaseModel):
     __tablename__ = "reviews"
+
     rating: Mapped[int] = mapped_column(Integer, nullable=False)
     comment: Mapped[str | None] = mapped_column(Text, nullable=True)
 

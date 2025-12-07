@@ -32,7 +32,6 @@ class User(BaseModel):
 
     is_active: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
     is_superuser: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
-
     is_email_verified: Mapped[bool] = mapped_column(
         Boolean, nullable=False, default=False
     )
@@ -46,12 +45,25 @@ class User(BaseModel):
         default=UserRole.buyer,
     )
 
+    # relations
     orders: Mapped[list["Order"]] = relationship(  # type: ignore # noqa: F821
         back_populates="user", cascade="all, delete-orphan"
     )
-    cart: Mapped["Cart"] = relationship("Cart", back_populates="user", uselist=False)  # type: ignore # noqa: F821
+    cart: Mapped["Cart"] = relationship(  # type: ignore # noqa: F821
+        "Cart", back_populates="user", uselist=False
+    )
 
-    seller: Mapped["Seller"] = relationship("Seller", back_populates="user", uselist=False)  # type: ignore # noqa: F821
+    seller: Mapped["Seller"] = relationship(  # type: ignore # noqa: F821
+        "Seller", back_populates="user", uselist=False
+    )
+
+    addresses: Mapped[list["DeliveryAddress"]] = relationship(  # type: ignore # noqa: F821
+        back_populates="user", cascade="all, delete-orphan"
+    )
+
+    courier_profile: Mapped["CourierProfile"] = relationship(  # type: ignore # noqa: F821
+        "CourierProfile", back_populates="user", uselist=False
+    )
 
     def __repr__(self):
         return f"<User id={self.id} email={self.email} role={self.role}>"

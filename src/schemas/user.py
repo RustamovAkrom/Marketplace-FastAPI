@@ -30,6 +30,10 @@ class UserUpdateScheme(BaseModel):
 class UserOutScheme(UserBaseScheme):
     id: int
     role: UserRole
+    is_active: bool
+    is_superuser: bool
+    is_email_verified: bool
+    is_phone_verified: bool
 
 
 __all__ = (

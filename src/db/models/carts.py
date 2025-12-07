@@ -9,6 +9,7 @@ from db.base import BaseModel
 
 class Cart(BaseModel):
     __tablename__ = "carts"
+
     user_id: Mapped[int] = mapped_column(
         ForeignKey("users.id"), unique=True, index=True
     )
@@ -20,6 +21,7 @@ class Cart(BaseModel):
 
 class CartItem(BaseModel):
     __tablename__ = "cart_items"
+
     cart_id: Mapped[int] = mapped_column(ForeignKey("carts.id"), index=True)
     variant_id: Mapped[int] = mapped_column(
         ForeignKey("product_variants.id"), index=True

@@ -10,9 +10,9 @@ class Brand(BaseModel):
     __tablename__ = "brands"
 
     name: Mapped[str] = mapped_column(String(100), nullable=False, unique=True)
-    description: Mapped[str] = mapped_column(String(255), nullable=True)
-    logo_url: Mapped[str] = mapped_column(String(255), nullable=True)
-    website_url: Mapped[str] = mapped_column(String(255), nullable=True)
+    description: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    logo_url: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    website_url: Mapped[str | None] = mapped_column(String(255), nullable=True)
     parent_brand_id: Mapped[int | None] = mapped_column(
         ForeignKey("brands.id"), nullable=True
     )

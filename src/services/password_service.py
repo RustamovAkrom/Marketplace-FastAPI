@@ -35,8 +35,9 @@ class PasswordService:
             extra={"type": "password_reset"},
         )
 
-        # Send verification link to reset password
-        await send_reset_password_task.delay(user.email, reset_token)
+        if settings.ENV == "prod":
+            # Send verification link to reset password
+            await send_reset_password_task.delay(user.email, reset_token)
 
         return {"msg": "Password reset link sent", "token": reset_token}
 

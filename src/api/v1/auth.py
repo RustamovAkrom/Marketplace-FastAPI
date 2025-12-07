@@ -12,7 +12,6 @@ from schemas.auth import (
     RegistrationScheme,
     TokenScheme,
 )
-from schemas.user import UserCreateScheme
 from services.auth_service import AuthService
 from services.password_service import PasswordService, get_password_service
 
@@ -25,11 +24,11 @@ async def get_auth_service(
     return AuthService(session)
 
 
-@router.post("/register", response_model=UserCreateScheme)
+@router.post("/register", response_model=RegisterOutScheme)
 async def register_user(
     data: RegistrationScheme,
     auth_service: AuthService = Depends(get_auth_service),
-) -> RegisterOutScheme:
+):
     """
     User registration endpoint
     """
@@ -40,7 +39,7 @@ async def register_user(
 async def login_user(
     data: LoginScheme,
     auth_service: AuthService = Depends(get_auth_service),
-) -> LoginOutScheme:
+):
     """
     User login endpoint
     """

@@ -1,8 +1,8 @@
 """empty message
 
-Revision ID: 0312bc27af6c
+Revision ID: cfa02231b685
 Revises:
-Create Date: 2025-12-06 18:06:06.884568
+Create Date: 2025-12-07 16:47:32.384365
 
 """
 
@@ -12,7 +12,7 @@ import sqlalchemy as sa
 from alembic import op
 
 # revision identifiers, used by Alembic.
-revision: str = '0312bc27af6c'
+revision: str = 'cfa02231b685'
 down_revision: Union[str, Sequence[str], None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -149,6 +149,57 @@ def upgrade() -> None:
     )
     op.create_index(op.f('ix_carts_user_id'), 'carts', ['user_id'], unique=True)
     op.create_table(
+        'courier_profiles',
+        sa.Column('user_id', sa.Integer(), nullable=False),
+        sa.Column(
+            'transport_type',
+            sa.Enum('foot', 'bike', 'car', 'moto', name='transport_type_enum'),
+            nullable=False,
+        ),
+        sa.Column('is_available', sa.Boolean(), nullable=False),
+        sa.Column('rating', sa.Float(), nullable=False),
+        sa.Column('completed_deliveries', sa.Integer(), nullable=False),
+        sa.Column('latitude', sa.Float(), nullable=True),
+        sa.Column('longitude', sa.Float(), nullable=True),
+        sa.Column('id', sa.Integer(), autoincrement=True, nullable=False),
+        sa.Column('created_at', sa.DateTime(), nullable=False),
+        sa.Column(
+            'updated_at',
+            sa.DateTime(),
+            server_default=sa.text('(CURRENT_TIMESTAMP)'),
+            nullable=False,
+        ),
+        sa.ForeignKeyConstraint(
+            ['user_id'], ['users.id'], name=op.f('fk_courier_profiles_user_id_users')
+        ),
+        sa.PrimaryKeyConstraint('id', name=op.f('pk_courier_profiles')),
+        sa.UniqueConstraint('user_id', name=op.f('uq_courier_profiles_user_id')),
+    )
+    op.create_table(
+        'delivery_addresses',
+        sa.Column('user_id', sa.Integer(), nullable=False),
+        sa.Column('country', sa.String(length=64), nullable=False),
+        sa.Column('city', sa.String(length=64), nullable=False),
+        sa.Column('street', sa.String(length=128), nullable=False),
+        sa.Column('house', sa.String(length=32), nullable=True),
+        sa.Column('apartment', sa.String(length=32), nullable=True),
+        sa.Column('latitude', sa.Float(), nullable=True),
+        sa.Column('longitude', sa.Float(), nullable=True),
+        sa.Column('description', sa.String(length=512), nullable=True),
+        sa.Column('id', sa.Integer(), autoincrement=True, nullable=False),
+        sa.Column('created_at', sa.DateTime(), nullable=False),
+        sa.Column(
+            'updated_at',
+            sa.DateTime(),
+            server_default=sa.text('(CURRENT_TIMESTAMP)'),
+            nullable=False,
+        ),
+        sa.ForeignKeyConstraint(
+            ['user_id'], ['users.id'], name=op.f('fk_delivery_addresses_user_id_users')
+        ),
+        sa.PrimaryKeyConstraint('id', name=op.f('pk_delivery_addresses')),
+    )
+    op.create_table(
         'orders',
         sa.Column('user_id', sa.Integer(), nullable=False),
         sa.Column('total_amount', sa.Numeric(precision=12, scale=2), nullable=False),
@@ -191,6 +242,48 @@ def upgrade() -> None:
     )
     op.create_index(op.f('ix_sellers_user_id'), 'sellers', ['user_id'], unique=True)
     op.create_table(
+        'deliveries',
+        sa.Column('order_id', sa.Integer(), nullable=False),
+        sa.Column('courier_id', sa.Integer(), nullable=False),
+        sa.Column('address_id', sa.Integer(), nullable=False),
+        sa.Column(
+            'status',
+            sa.Enum(
+                'pending',
+                'assigned',
+                'picking',
+                'delivering',
+                'delivered',
+                'canceled',
+                name='delivery_status_enum',
+            ),
+            nullable=False,
+        ),
+        sa.Column('assigned_at', sa.DateTime(), nullable=True),
+        sa.Column('delivered_at', sa.DateTime(), nullable=True),
+        sa.Column('id', sa.Integer(), autoincrement=True, nullable=False),
+        sa.Column('created_at', sa.DateTime(), nullable=False),
+        sa.Column(
+            'updated_at',
+            sa.DateTime(),
+            server_default=sa.text('(CURRENT_TIMESTAMP)'),
+            nullable=False,
+        ),
+        sa.ForeignKeyConstraint(
+            ['address_id'],
+            ['delivery_addresses.id'],
+            name=op.f('fk_deliveries_address_id_delivery_addresses'),
+        ),
+        sa.ForeignKeyConstraint(
+            ['courier_id'], ['users.id'], name=op.f('fk_deliveries_courier_id_users')
+        ),
+        sa.ForeignKeyConstraint(
+            ['order_id'], ['orders.id'], name=op.f('fk_deliveries_order_id_orders')
+        ),
+        sa.PrimaryKeyConstraint('id', name=op.f('pk_deliveries')),
+        sa.UniqueConstraint('order_id', name=op.f('uq_deliveries_order_id')),
+    )
+    op.create_table(
         'products',
         sa.Column('title', sa.String(length=255), nullable=False),
         sa.Column('slug', sa.String(length=255), nullable=False),
@@ -199,7 +292,6 @@ def upgrade() -> None:
         sa.Column('old_price', sa.Numeric(precision=12, scale=2), nullable=True),
         sa.Column('in_stock', sa.Boolean(), nullable=False),
         sa.Column('is_active', sa.Boolean(), nullable=False),
-        sa.Column('owner_id', sa.Integer(), nullable=False),
         sa.Column('category_id', sa.Integer(), nullable=False),
         sa.Column('brand_id', sa.Integer(), nullable=True),
         sa.Column('seller_id', sa.Integer(), nullable=True),
@@ -220,9 +312,6 @@ def upgrade() -> None:
             name=op.f('fk_products_category_id_categories'),
         ),
         sa.ForeignKeyConstraint(
-            ['owner_id'], ['users.id'], name=op.f('fk_products_owner_id_users')
-        ),
-        sa.ForeignKeyConstraint(
             ['seller_id'], ['sellers.id'], name=op.f('fk_products_seller_id_sellers')
         ),
         sa.PrimaryKeyConstraint('id', name=op.f('pk_products')),
@@ -232,9 +321,6 @@ def upgrade() -> None:
     )
     op.create_index(
         op.f('ix_products_category_id'), 'products', ['category_id'], unique=False
-    )
-    op.create_index(
-        op.f('ix_products_owner_id'), 'products', ['owner_id'], unique=False
     )
     op.create_index(
         op.f('ix_products_seller_id'), 'products', ['seller_id'], unique=False
@@ -407,15 +493,17 @@ def downgrade() -> None:
     op.drop_index(op.f('ix_products_title'), table_name='products')
     op.drop_index(op.f('ix_products_slug'), table_name='products')
     op.drop_index(op.f('ix_products_seller_id'), table_name='products')
-    op.drop_index(op.f('ix_products_owner_id'), table_name='products')
     op.drop_index(op.f('ix_products_category_id'), table_name='products')
     op.drop_index(op.f('ix_products_brand_id'), table_name='products')
     op.drop_table('products')
+    op.drop_table('deliveries')
     op.drop_index(op.f('ix_sellers_user_id'), table_name='sellers')
     op.drop_index(op.f('ix_sellers_shop_name'), table_name='sellers')
     op.drop_table('sellers')
     op.drop_index(op.f('ix_orders_user_id'), table_name='orders')
     op.drop_table('orders')
+    op.drop_table('delivery_addresses')
+    op.drop_table('courier_profiles')
     op.drop_index(op.f('ix_carts_user_id'), table_name='carts')
     op.drop_table('carts')
     op.drop_index(op.f('ix_users_username'), table_name='users')

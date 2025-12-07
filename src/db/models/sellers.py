@@ -10,7 +10,7 @@ class Seller(BaseModel):
     __tablename__ = "sellers"
 
     user_id: Mapped[int] = mapped_column(
-        ForeignKey("users.id"), unique=True, index=True
+        ForeignKey("users.id"), unique=True, nullable=False, index=True
     )
     shop_name: Mapped[str] = mapped_column(String(255), nullable=False, index=True)
     description: Mapped[str | None] = mapped_column(String(500), nullable=True)

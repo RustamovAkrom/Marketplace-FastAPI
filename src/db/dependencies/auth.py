@@ -27,7 +27,7 @@ async def get_current_user(
         payload = decode_token(token)
     except ValueError as exc:
         reason = str(exc)
-        if reason == "token_expired":
+        if "token_expired" in reason:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED, detail="Token expired"
             )
@@ -47,9 +47,8 @@ async def get_current_user(
             status_code=status.HTTP_401_UNAUTHORIZED, detail="Token revoked"
         )
 
-    user_crud = UserCRUD(session)
-    user = await user_crud.get_by_id(int(payload.get("sub")))
-
+    user_id = int(payload.get("sub"))
+    user = await UserCRUD(session).get_by_id(user_id)
     if not user:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED, detail="User not found"

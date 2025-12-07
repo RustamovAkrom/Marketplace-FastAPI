@@ -13,8 +13,11 @@ class PromoCode(BaseModel):
     code: Mapped[str] = mapped_column(
         String(50), unique=True, nullable=False, index=True
     )
-    discount_percent: Mapped[int] = mapped_column(Integer, default=0)
+    discount_percent: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
     discount_amount: Mapped[float | None] = mapped_column(Numeric(12, 2), nullable=True)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
     valid_from: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
     valid_to: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+
+    def __repr__(self):
+        return f"<PromoCode code={self.code}>"
