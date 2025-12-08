@@ -12,9 +12,12 @@ from core.config import settings
 
 @cache
 def get_async_db_engine() -> AsyncEngine:
+    url = settings.DATABASE_URL
+    if not url:
+        raise RuntimeError("DATABASE_URL is not configured")
     return create_async_engine(
-        settings.DATABASE_URL,
-        echo=settings.ENV == "dev",
+        url,
+        echo=(settings.ENV == "dev"),
         future=True,
     )
 

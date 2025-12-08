@@ -44,8 +44,10 @@ class BaseAppSettings(BaseSettings):
 
     @property
     def DATABASE_URL(self) -> str:
-        if self.ENV == "dev":
-            return f"sqlite+aiosqlite:///{BASE_DIR / self.DB_NAME}.db"
+        if self.ENV == "dev" or self.DB_ENGINE == "sqlite":
+            db_path = BASE_DIR / f"{self.DB_NAME}.db"
+            return f"sqlite+aiosqlite:///{db_path}"
+        # Postgres
         return (
             "postgresql+asyncpg://"
             f"{self.DB_USER}:{self.DB_PASSWORD}@"
@@ -69,7 +71,7 @@ class BaseAppSettings(BaseSettings):
     def CELERY_BROKER_URL(self):
         if self.BROKER == "redis":
             return f"redis://{self.REDIS_HOST}:{self.REDIS_PORT}/{self.REDIS_DB}"
-
+        # rabbitmq
         return (
             "amqp://"
             f"{self.RABBITMQ_USER}:{self.RABBITMQ_PASSWORD}"
@@ -107,6 +109,14 @@ class BaseAppSettings(BaseSettings):
                 "redirect_uri": self.GOOGLE_REDIRECT_URI,
             }
         }
+
+    # Sentry DSN
+    SENTRY_DSN: str | None = None
+
+    # Prometheus
+    PROMETHEUS_ENABLED: bool = True
+    PROMETHEUS_PATH: str = "/metrics"
+    PROMETHEUS_METRICS_KEY: str = "secret"
 
     # Pydantic config
     model_config = SettingsConfigDict(
