@@ -15,8 +15,8 @@ class TransportType(str, enum.Enum):
     moto = "moto"
 
 
-class CourierProfile(BaseModel):
-    __tablename__ = "courier_profiles"
+class Courier(BaseModel):
+    __tablename__ = "couriers"
 
     user_id: Mapped[int] = mapped_column(
         ForeignKey("users.id"), unique=True, nullable=False
@@ -37,4 +37,4 @@ class CourierProfile(BaseModel):
     latitude: Mapped[float | None] = mapped_column(Float, nullable=True)
     longitude: Mapped[float | None] = mapped_column(Float, nullable=True)
 
-    user: Mapped["User"] = relationship("User", back_populates="courier_profile")  # type: ignore # noqa: F821
+    user: Mapped["User"] = relationship("User", back_populates="couriers")  # type: ignore # noqa: F821

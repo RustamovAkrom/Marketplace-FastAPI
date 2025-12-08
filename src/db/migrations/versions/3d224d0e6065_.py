@@ -1,8 +1,8 @@
 """empty message
 
-Revision ID: cfa02231b685
+Revision ID: 3d224d0e6065
 Revises:
-Create Date: 2025-12-07 16:47:32.384365
+Create Date: 2025-12-08 12:48:54.428901
 
 """
 
@@ -12,7 +12,7 @@ import sqlalchemy as sa
 from alembic import op
 
 # revision identifiers, used by Alembic.
-revision: str = 'cfa02231b685'
+revision: str = '3d224d0e6065'
 down_revision: Union[str, Sequence[str], None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -24,6 +24,7 @@ def upgrade() -> None:
     op.create_table(
         'brands',
         sa.Column('name', sa.String(length=100), nullable=False),
+        sa.Column('slug', sa.String(length=200), nullable=False),
         sa.Column('description', sa.String(length=255), nullable=True),
         sa.Column('logo_url', sa.String(length=255), nullable=True),
         sa.Column('website_url', sa.String(length=255), nullable=True),
@@ -43,6 +44,7 @@ def upgrade() -> None:
         ),
         sa.PrimaryKeyConstraint('id', name=op.f('pk_brands')),
         sa.UniqueConstraint('name', name=op.f('uq_brands_name')),
+        sa.UniqueConstraint('slug', name=op.f('uq_brands_slug')),
     )
     op.create_table(
         'categories',
@@ -149,7 +151,7 @@ def upgrade() -> None:
     )
     op.create_index(op.f('ix_carts_user_id'), 'carts', ['user_id'], unique=True)
     op.create_table(
-        'courier_profiles',
+        'couriers',
         sa.Column('user_id', sa.Integer(), nullable=False),
         sa.Column(
             'transport_type',
@@ -170,10 +172,10 @@ def upgrade() -> None:
             nullable=False,
         ),
         sa.ForeignKeyConstraint(
-            ['user_id'], ['users.id'], name=op.f('fk_courier_profiles_user_id_users')
+            ['user_id'], ['users.id'], name=op.f('fk_couriers_user_id_users')
         ),
-        sa.PrimaryKeyConstraint('id', name=op.f('pk_courier_profiles')),
-        sa.UniqueConstraint('user_id', name=op.f('uq_courier_profiles_user_id')),
+        sa.PrimaryKeyConstraint('id', name=op.f('pk_couriers')),
+        sa.UniqueConstraint('user_id', name=op.f('uq_couriers_user_id')),
     )
     op.create_table(
         'delivery_addresses',
@@ -275,7 +277,9 @@ def upgrade() -> None:
             name=op.f('fk_deliveries_address_id_delivery_addresses'),
         ),
         sa.ForeignKeyConstraint(
-            ['courier_id'], ['users.id'], name=op.f('fk_deliveries_courier_id_users')
+            ['courier_id'],
+            ['couriers.id'],
+            name=op.f('fk_deliveries_courier_id_couriers'),
         ),
         sa.ForeignKeyConstraint(
             ['order_id'], ['orders.id'], name=op.f('fk_deliveries_order_id_orders')
@@ -503,7 +507,7 @@ def downgrade() -> None:
     op.drop_index(op.f('ix_orders_user_id'), table_name='orders')
     op.drop_table('orders')
     op.drop_table('delivery_addresses')
-    op.drop_table('courier_profiles')
+    op.drop_table('couriers')
     op.drop_index(op.f('ix_carts_user_id'), table_name='carts')
     op.drop_table('carts')
     op.drop_index(op.f('ix_users_username'), table_name='users')

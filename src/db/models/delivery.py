@@ -22,7 +22,7 @@ class Delivery(BaseModel):
     __tablename__ = "deliveries"
 
     order_id: Mapped[int] = mapped_column(ForeignKey("orders.id"), unique=True)
-    courier_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
+    courier_id: Mapped[int] = mapped_column(ForeignKey("couriers.id"))
     address_id: Mapped[int] = mapped_column(
         ForeignKey("delivery_addresses.id"), nullable=False
     )
@@ -37,5 +37,5 @@ class Delivery(BaseModel):
     delivered_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
 
     order: Mapped["Order"] = relationship("Order", back_populates="delivery")  # type: ignore # noqa: F821
-    courier: Mapped["User"] = relationship("User")  # type: ignore # noqa: F821
+    courier: Mapped["Courier"] = relationship("Courier")  # type: ignore # noqa: F821
     address: Mapped["DeliveryAddress"] = relationship("DeliveryAddress")  # type: ignore # noqa: F821

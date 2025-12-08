@@ -85,7 +85,12 @@ def require_roles(*allowed_roles: str):
 
 
 # READY-TO-USE SHORTCUTS
-require_admin = require_roles(UserRole.admin.value)
-require_seller = require_roles(UserRole.seller.value)
-require_buyer = require_roles(UserRole.buyer.value)
-require_courier = require_roles(UserRole.courier.value)
+ADMIN_ROLE = UserRole.admin.value
+SELLER_ROLE = UserRole.seller.value
+BUYER_ROLE = UserRole.buyer.value
+COURIER_ROLE = UserRole.courier.value
+
+require_admin = require_roles(ADMIN_ROLE)
+require_seller = require_roles(SELLER_ROLE)
+require_buyer = require_roles(BUYER_ROLE)
+require_courier = require_roles(COURIER_ROLE)

@@ -8,7 +8,7 @@ class BrandBaseScheme(BaseModel):
     description: Optional[str] = Field(None, max_length=255)
     logo_url: Optional[str] = Field(None, max_length=255)
     website_url: Optional[str] = Field(None, max_length=255)
-    parent_brand_id: Optional[int] = None
+    # parent_brand_id: Optional[int] = None
 
 
 class BrandCreateScheme(BrandBaseScheme):

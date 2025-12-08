@@ -1,13 +1,6 @@
 from fastapi import APIRouter
 
-from api.v1 import (  # noqa
-    admin,
-    auth,
-    category,
-    dashboard,
-    social_auth,
-    users,
-)
+from api.v1 import admin, auth, brand, category, dashboard, social_auth, users  # noqa
 from core.config import settings
 
 api_router = APIRouter(
@@ -22,5 +15,6 @@ api_router.include_router(dashboard.router, prefix="/dashboard", tags=["Dashboar
 api_router.include_router(users.router, prefix="/users", tags=["Users"])
 api_router.include_router(admin.router, prefix="/admin", tags=["Admin"])
 api_router.include_router(category.router, prefix="/categories", tags=["Categories"])
+api_router.include_router(brand.router, prefix="/brands", tags=["Brands"])
 
 __all__ = ("api_router",)

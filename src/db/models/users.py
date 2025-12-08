@@ -61,8 +61,8 @@ class User(BaseModel):
         back_populates="user", cascade="all, delete-orphan"
     )
 
-    courier_profile: Mapped["CourierProfile"] = relationship(  # type: ignore # noqa: F821
-        "CourierProfile", back_populates="user", uselist=False
+    couriers: Mapped["Courier"] = relationship(  # type: ignore # noqa: F821
+        "Courier", back_populates="user", uselist=False
     )
 
     def __repr__(self):
