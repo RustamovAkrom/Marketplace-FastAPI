@@ -74,7 +74,7 @@ jobs:
 
       # 🔒 10️⃣ Аудит безопасности зависимостей
       - name: Dependency security audit (pip-audit)
-        run: uv run pip-audit
+        run: uv run pip-audit --format=columns
 
       - name: Static security scan (Bandit)
         run: uv run bandit -r src -ll
