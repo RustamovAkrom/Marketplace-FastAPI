@@ -30,8 +30,8 @@ class BaseAppSettings(
     APP_VERSION: str = "1.0.0"
     APP_DESCRIPTION: str = "An e-commerce marketplace API built with FastAPI."
     API_V1_PREFIX: str = "/api/v1"
-    SERVER_HOST: str = "0.0.0.0"
-    SERVER_PORT: int = 8000
+    SERVER_HOST: str = "0.0.0.0"  # nosec B104
+    SERVER_PORT: int = 8000  # nosec B104
     RELOAD: bool = True
     LOG_LEVEL: str = "INFO"
 
