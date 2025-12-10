@@ -49,7 +49,7 @@ jobs:
 
       # 6️⃣ Pre-commit checks (форматирование, линтеры и проверки безопасности)
       - name: Run Pre-commit checks
-        uses: pre-commit/action@v3.0.0
+        uses: pre-commit/action@v3.0.1
         with:
           extra_args: --all-files
 
