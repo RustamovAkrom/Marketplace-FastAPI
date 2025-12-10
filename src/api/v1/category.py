@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, status
 
 from db.crud.category import CategoryCRUD
 from db.dependencies.auth import ADMIN_ROLE, SELLER_ROLE, require_roles
@@ -7,6 +7,7 @@ from schemas.category import (
     CategoryOutScheme,
     CategoryUpdateScheme,
 )
+from utils.shortcuts import get_or_404
 
 router = APIRouter(prefix="/categories", tags=["Categories"])
 
@@ -20,9 +21,9 @@ async def get_categories(categoryies_crud: CategoryCRUD = Depends(CategoryCRUD))
 async def get_category(
     slug: str, categoryies_crud: CategoryCRUD = Depends(CategoryCRUD)
 ):
-    category = await categoryies_crud.get_by_slug(slug)
-    if not category:
-        raise HTTPException(status_code=404, detail="Category not found")
+    category = await get_or_404(
+        categoryies_crud.get_by_slug(slug), "Category not found"
+    )
     return category
 
 
@@ -48,10 +49,9 @@ async def update_category(
     data: CategoryUpdateScheme,
     categoryies_crud: CategoryCRUD = Depends(CategoryCRUD),
 ):
-    category = await categoryies_crud.get_by_slug(slug)
-    if not category:
-        raise HTTPException(status_code=404, detail="Category not found")
-
+    category = await get_or_404(
+        categoryies_crud.get_by_slug(slug), "Category not found"
+    )
     return await categoryies_crud.update(category, data)
 
 
@@ -63,8 +63,7 @@ async def update_category(
 async def delete_category(
     slug: str, categoryies_crud: CategoryCRUD = Depends(CategoryCRUD)
 ):
-    category = await categoryies_crud.get_by_slug(slug)
-    if not category:
-        raise HTTPException(status_code=404, detail="Category not found")
-
+    category = await get_or_404(
+        categoryies_crud.get_by_slug(slug), "Category not found"
+    )
     await categoryies_crud.delete(category)

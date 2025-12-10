@@ -51,6 +51,7 @@ class ProductImage(BaseModel):
     url: Mapped[str] = mapped_column(String(500), nullable=False)
     product_id: Mapped[int] = mapped_column(ForeignKey("products.id"), index=True)
     product: Mapped["Product"] = relationship("Product", back_populates="images")
+    is_main: Mapped[bool] = mapped_column(Boolean, default=False)
 
 
 class ProductVariant(BaseModel):

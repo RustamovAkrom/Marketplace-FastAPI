@@ -38,4 +38,4 @@ class Delivery(BaseModel):
 
     order: Mapped["Order"] = relationship("Order", back_populates="delivery")  # type: ignore # noqa: F821
     courier: Mapped["Courier"] = relationship("Courier")  # type: ignore # noqa: F821
-    address: Mapped["DeliveryAddress"] = relationship("DeliveryAddress")  # type: ignore # noqa: F821
+    address: Mapped["DeliveryAddress"] = relationship("DeliveryAddress", back_populates="deliveries")  # type: ignore # noqa: F821

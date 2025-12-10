@@ -1,59 +1,69 @@
 from typing import List, Optional
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, validator
 
 # * Product Images *
 
 
-class ProductImageBaseScheme(BaseModel):
+class ProductImageCreateScheme(BaseModel):
     url: str = Field(..., max_length=500)
 
 
-class ProductImageCreateScheme(ProductImageBaseScheme):
-    product_id: int
-
-
-class ProductImageOutScheme(ProductImageBaseScheme):
+class ProductImageOutScheme(BaseModel):
     id: int
+    url: str = Field(..., max_length=500)
+    is_main: bool
 
     model_config = ConfigDict(from_attributes=True)
 
 
 class ProductVariantCreateScheme(BaseModel):
-    sku: str
+    sku: str = Field(..., max_length=100)
     attributes: Optional[str] = None
     price: float
-    stock: int
+    stock: int = 0
+    is_active: Optional[bool] = True
 
 
-class ProductVariantsOutScheme(ProductVariantCreateScheme):
+class ProductVariantUpdateScheme(BaseModel):
+    attributes: Optional[str] = None
+    price: Optional[float] = None
+    stock: Optional[int] = None
+    is_active: Optional[bool] = None
+
+
+class ProductVariantsOutScheme(BaseModel):
     id: int
+    sku: str
+    attributes: Optional[str]
+    price: float
+    stock: int
+    is_active: bool
 
     model_config = ConfigDict(from_attributes=True)
 
 
-# * Product *
-class ProductBaseScheme(BaseModel):
-    title: str = Field(..., min_length=2, max_length=255)
-    slug: str = Field(..., min_length=2, max_length=255)
+class ProductCreateScheme(BaseModel):
+    title: str
+    slug: str
     description: Optional[str] = None
-
     price: float = Field(..., ge=0)
     old_price: Optional[float] = Field(None, ge=0)
-
-    is_stock: bool = True
-    is_active: bool = True
-
+    is_stock: Optional[bool] = True
+    is_active: Optional[bool] = True
     category_id: int
     brand_id: Optional[int] = None
     seller_id: Optional[int] = None
-
     images: Optional[List[ProductImageOutScheme]] = []
     variants: Optional[List[ProductVariantsOutScheme]] = []
 
+    @validator("images", pre=True, always=True)
+    def ensure_list_images(cls, v):
+        raise v or []
 
-class ProductCreateScheme(ProductBaseScheme):
-    pass
+    @validator("variants", pre=True, always=True)
+    def ensure_list_variants(cls, v):
+        return v or []
 
 
 class ProductUpdateScheme(BaseModel):
@@ -69,20 +79,27 @@ class ProductUpdateScheme(BaseModel):
     seller_id: Optional[int] = None
 
 
-class ProductOutScheme(ProductBaseScheme):
-    id: int
+class ProductOutScheme(BaseModel):
+    title: str
+    slug: str
+    description: Optional[str]
+    price: float
+    old_price: Optional[float]
+    in_stock: bool
+    is_active: bool
+    category_id: int
+    brand_id: Optional[int]
+    seller_id: Optional[int]
     images: List[ProductImageOutScheme] = []
-
+    variants: List[ProductVariantsOutScheme] = []
     model_config = ConfigDict(from_attributes=True)
 
 
 __all__ = (
-    "ProductImageBaseScheme",
     "ProductImageCreateScheme",
     "ProductVariantCreateScheme",
     "ProductVariantsOutScheme",
     "ProductImageOutScheme",
-    "ProductBaseScheme",
     "ProductCreateScheme",
     "ProductUpdateScheme",
     "ProductOutScheme",

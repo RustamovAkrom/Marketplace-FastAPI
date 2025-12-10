@@ -1,35 +1,27 @@
+from datetime import datetime
 from typing import Optional
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict
 
 
-class PromoCodeBaseScheme(BaseModel):
-    code: str = Field(..., min_length=3, max_length=50)
-    discount_percent: int = Field(..., ge=0, le=100)
-    discount_amount: Optional[float] = Field(None, ge=0)
+class PromoCodeBase(BaseModel):
+    code: str
+    discount_percent: int = 0
+    discount_amount: Optional[float] = None
     is_active: bool = True
+    valid_from: Optional[datetime] = None
+    valid_to: Optional[datetime] = None
 
 
-class PromoCodeCreateScheme(PromoCodeBaseScheme):
+class PromoCodeCreateScheme(PromoCodeBase):
     pass
 
 
-class PromoCodeUpdateScheme(BaseModel):
-    code: Optional[str] = Field(None, min_length=3, max_length=50)
-    discount_percent: Optional[int] = Field(None, ge=0, le=100)
-    discount_amount: Optional[float] = Field(None, ge=0)
-    is_active: Optional[bool] = None
+class PromoCodeUpdateScheme(PromoCodeBase):
+    pass
 
 
-class PromoCodeOutScheme(PromoCodeBaseScheme):
+class PromoCodeOutScheme(PromoCodeBase):
     id: int
 
     model_config = ConfigDict(from_attributes=True)
-
-
-__all__ = (
-    "PromoCodeBaseScheme",
-    "PromoCodeCreateScheme",
-    "PromoCodeUpdateScheme",
-    "PromoCodeOutScheme",
-)

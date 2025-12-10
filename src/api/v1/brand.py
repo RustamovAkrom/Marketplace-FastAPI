@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, status
 
 from db.crud.brand import BrandCRUD
 from db.dependencies.auth import ADMIN_ROLE, SELLER_ROLE, require_roles
@@ -7,6 +7,7 @@ from schemas.brand import (
     BrandOutScheme,
     BrandUpdateScheme,
 )
+from utils.shortcuts import get_or_404
 
 router = APIRouter(prefix="/brands", tags=["Brands"])
 
@@ -18,11 +19,7 @@ async def get_brands(brands_crud: BrandCRUD = Depends(BrandCRUD)):
 
 @router.get("/{slug}", response_model=BrandOutScheme)
 async def get_brand(slug: str, brands_crud: BrandCRUD = Depends(BrandCRUD)):
-    brand = await brands_crud.get_by_slug(slug)
-    if not brand:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Brand not found"
-        )
+    brand = await get_or_404(brands_crud.get_by_slug(slug), "Brand not found")
     return brand
 
 
@@ -46,11 +43,7 @@ async def create_brand(
 async def update_brand(
     slug: str, data: BrandUpdateScheme, brands_crud: BrandCRUD = Depends(BrandCRUD)
 ):
-    brand = await brands_crud.get_by_slug(slug)
-    if not brand:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Brand not found"
-        )
+    brand = await get_or_404(brands_crud.get_by_slug(slug), "Brand not found")
     return await brands_crud.update(brand, data)
 
 
@@ -60,9 +53,5 @@ async def update_brand(
     dependencies=[Depends(require_roles(ADMIN_ROLE, SELLER_ROLE))],
 )
 async def delete_brand(slug: str, brands_crud: BrandCRUD = Depends(BrandCRUD)):
-    brand = await brands_crud.get_by_slug(slug)
-    if not brand:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Brand not found"
-        )
+    brand = await get_or_404(brands_crud.get_by_slug(slug), "Brand not found")
     await brands_crud.delete(brand)

@@ -1,10 +1,12 @@
+import os
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import ORJSONResponse
 from fastapi.staticfiles import StaticFiles
 
 from api.routers import api_router
-from core.config import MEDIA_ROOT, MEDIA_URL, settings
+from core.config import settings
 from core.exceptions import register_error_handler
 from core.lifespan import lifespan
 from core.logger import configure_logger
@@ -15,6 +17,10 @@ from middlewares.request_id_middleware import RequestIDMiddleware
 
 
 def create_app() -> FastAPI:
+    # If media file not exist it will create
+    if not os.path.exists(settings.MEDIA_ROOT):
+        settings.MEDIA_ROOT.mkdir(parents=True, exist_ok=True)
+
     """Create and configure the FastAPI application."""
     # Configure logger
     configure_logger()
@@ -56,11 +62,11 @@ def create_app() -> FastAPI:
     # Register error handlers
     register_error_handler(app)
 
-    # Include API router
-
     # Static files (media)
     try:
-        app.mount(MEDIA_URL, StaticFiles(directory=MEDIA_ROOT), name="media")
+        app.mount(
+            settings.MEDIA_URL, StaticFiles(directory=settings.MEDIA_ROOT), name="media"
+        )
     except Exception:
         # don't crash if media doesn't exists at startup
         pass

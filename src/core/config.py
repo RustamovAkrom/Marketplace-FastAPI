@@ -5,11 +5,20 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
-MEDIA_ROOT = BASE_DIR / "media"
-MEDIA_URL = "/media/"
+
+class StripeConfig:
+    STRIPE_SECRET_KEY: str = "secret"
+    STRIPE_WEBHOOK_SECRET: str = "secret"
+    STRIPE_API_VERSION: str = "2024-11-08"
 
 
-class BaseAppSettings(BaseSettings):
+class BaseAppSettings(
+    BaseSettings,
+    StripeConfig,
+):
+    MEDIA_ROOT: Path = BASE_DIR / "media"
+    MEDIA_URL: str = "/media/"
+
     # ENVIRONMENT
     ENV: str = "dev"  # dev, prod, test
     DEBUG: bool = True

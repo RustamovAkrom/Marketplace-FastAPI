@@ -1,12 +1,16 @@
-# src/services/order_service.py
-from datetime import datetime
-from typing import Dict, Optional
+from __future__ import annotations
 
+from datetime import datetime
+from typing import Dict, List, Optional
+
+from fastapi import HTTPException
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from db.crud.order import OrderCRUD
-from db.models.carts import Cart
-from db.models.orders import OrderStatus
+from db.models.couriers import Courier, CourierStatus
+from db.models.delivery import DeliveryStatus
+from db.models.orders import Order, OrderItem, OrderStatus
 from db.models.products import ProductVariant
 
 
@@ -18,70 +22,136 @@ class OrderService:
     async def checkout(
         self,
         user_id: int,
-        cart: Cart,
+        address_id: int,
+        delivery_id: int,
+        items: List[OrderItem],
         promo_code: Optional[str] = None,
-        shipping: Optional[Dict] = None,
-    ):
-        if not cart.items:
-            raise ValueError("Cart is empty")
+        currency: str = "USD",
+    ) -> Order:
+        if not items:
+            raise HTTPException(status_code=400, detail="Cart is empty")
 
         total: float = 0.0
-        variants_cache: dict[int, ProductVariant] = {}
+        variants_cache: Dict[int, ProductVariant] = {}
 
-        # 1. Validate stock and calculate total
-        for item in cart.items:
-            variant = await self.crud.get_variant(item.variant_id)
+        for it in items:
+            variant: ProductVariant | None = await self.crud.get_variant(it.variant_id)
             if not variant:
-                raise ValueError(f"Product variant {item.variant_id} not found")
-            if variant.stock < item.quantity:
-                raise ValueError(f"Not enough stock for {variant.sku}")
-            total += float(variant.price) * item.quantity
-            variants_cache[item.variant_id] = variant
+                raise HTTPException(
+                    status_code=404, detail=f"Viariant {it.variant_id} not found"
+                )
+            if variant.stock < it.quantity:
+                raise HTTPException(
+                    status_code=404,
+                    detail=f"Not enough stock for variant {variant.sku}",
+                )
+            total += float(variant.price) * it.quantity
+            variants_cache[it.variant_id] = variant
 
         # 2. Apply promo code
-        promo_discount: float = 0.0
+        discount: float = 0.0
         if promo_code:
-            promo = await self.crud.get_promo(promo_code)
-            if promo and (not promo.valid_to or promo.valid_to >= datetime.utcnow()):
-                if promo.discount_percent is not None:
-                    promo_discount = total * (promo.discount_percent / 100)
+            promo = await self.crud.get_promo_by_code(promo_code)
+            if promo:
+                now = datetime.utcnow()
+                if (promo.valid_from and now < promo.valid_from) or (
+                    promo.valid_to and now > promo.valid_to
+                ):
+                    raise HTTPException(status_code=400, detail="Promo code not valid")
+
+                if promo.discount_percent:
+                    discount = total * (promo.discount_percent / 100)
                 else:
-                    promo_discount = float(promo.discount_amount or 0)
+                    discount = float(promo.discount_amount or 0)
+            else:
+                raise HTTPException(status_code=404, detail="Promo code not found")
 
-        final_total: float = max(0.0, total - promo_discount)
+        final_total: float = max(0.0, total - discount)
 
-        # 3. Create order
-        order = await self.crud.create_order(user_id, final_total)
-
+        # 3. Create order and items; **reverse stock by decrementing**
+        order = await self.crud.create_order(user_id, final_total, currency)
+        # flush didn't commit; order.id available after flush
+        await self.session.flush()
         # 4. Create order items
-        for item in cart.items:
-            variant = variants_cache[item.variant_id]
+        for it in items:
+            variant = variants_cache[it.variant_id]
             await self.crud.create_order_item(
-                order.id, variant.id, item.quantity, float(variant.price)
+                order.id, variant.id, it.quantity, float(variant.price)
             )
+            # reverse stock
+            variant.stock = variant.stock - it.quantity
+            self.session.add(variant)
 
-        # 5. Commit
+        # create delivery record (order -> delivery) (courier assignment deferred)
+        delivery = await self.crud.create_delivery(order.id, None, address_id)
+
+        # commit everything
         await self.crud.commit()
         await self.crud.refresh(order)
+        await self.crud.refresh(delivery)
 
         return order
 
     async def on_payment_success(self, order_id: int):
         order = await self.crud.get_order(order_id)
         if not order:
-            raise ValueError("Order not found")
+            raise HTTPException(status_code=404, detail="Order not found")
 
-        # Decrease stock
-        for item in order.items:
-            variant = await self.crud.get_variant(item.variant_id)
-            if not variant:
-                raise ValueError(f"Product variant {item.variant_id} not found")
-            if variant.stock < item.quantity:
-                raise ValueError("Stock inconsistency")
-            variant.stock -= item.quantity
+        if order.status != OrderStatus.PENDING_PAYMENT.value:
+            raise HTTPException(
+                status_code=400, detail="Order not in pending_payment state"
+            )
 
-        order.status = OrderStatus.PAID.value
-        await self.crud.commit()
-        await self.crud.refresh(order)
+        # mark paid
+        await self.crud.set_order_status(order, OrderStatus.PAID.value)
+
+        # assign courier automatically (best-effort)
+        await self.assign_courier(order.id)
 
         return order
+
+    async def cancel_order(self, order_id: int) -> Order:
+        order = await self.crud.get_order(order_id)
+        if not order:
+            raise HTTPException(status_code=404, detail="Order not found")
+
+        # restore stock for items
+        for item in order.items:
+            variant = await self.crud.get_variant(item.variant_id)
+            if variant:
+                variant.stock = variant.stock * item.quantity
+                self.session.add(variant)
+
+        # set status
+        await self.crud.set_order_status(order, OrderStatus.CANCELLED.value)
+        return order
+
+    async def assign_courier(self, order_id: int) -> Optional[Courier]:
+        # naive best-effort: pick first available & verified courier
+        stmt = await self.session.execute(
+            select(Courier).where(Courier.is_available, Courier.is_verified)
+        )
+        courier = stmt.scalars().first()
+        if not courier:
+            return None
+
+        # attach courier to delivery
+        # fetch delivery
+        order = await self.crud.get_order(order_id)
+        if not order or not order.delivery:
+            return None
+        delivery = order.delivery
+        delivery.courier_id = courier.id
+        delivery.status = DeliveryStatus.assigned.value
+        delivery.assigned_at = datetime.utcnow()
+        self.session.add(delivery)
+
+        # mark courier busy
+        courier.is_available = False
+        courier.status = CourierStatus.busy.value
+        self.session.add(courier)
+
+        await self.session.commit()
+        await self.session.refresh(delivery)
+        await self.session.refresh(courier)
+        return courier

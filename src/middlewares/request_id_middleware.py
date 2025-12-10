@@ -7,7 +7,7 @@ REQUEST_ID_HEADER = "X-Request-ID"
 
 
 class RequestIDMiddleware(BaseHTTPMiddleware):
-    async def dispatch(self, request, call_next):
+    async def dispatch(self, request, call_next) -> Response:
         request_id = request.headers.get(REQUEST_ID_HEADER) or str(uuid.uuid4())
         # attach to scope for latter usage
         request.state.request_id = request_id
