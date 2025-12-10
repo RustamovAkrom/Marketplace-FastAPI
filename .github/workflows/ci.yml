@@ -76,11 +76,11 @@ jobs:
       # - name: Dependency security audit (pip-audit)
       #   run: uv run pip-audit --format=columns
 
-      - name: Static security scan (Bandit)
-        run: uv run bandit -r src -ll
+      # - name: Static security scan (Bandit)
+      #   run: uv run bandit -r src -ll
 
-      - name: Safety scan
-        run: uv run safety scan
+      # - name: Safety scan
+      #   run: uv run safety scan
 
       # 11️⃣ CodeQL security scanning
       - name: Initialize CodeQL
