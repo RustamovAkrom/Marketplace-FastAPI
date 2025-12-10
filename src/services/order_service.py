@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Dict, List, Optional
 
 from fastapi import HTTPException
@@ -23,7 +23,6 @@ class OrderService:
         self,
         user_id: int,
         address_id: int,
-        delivery_id: int,
         items: List[OrderItem],
         promo_code: Optional[str] = None,
         currency: str = "USD",
@@ -53,7 +52,7 @@ class OrderService:
         if promo_code:
             promo = await self.crud.get_promo_by_code(promo_code)
             if promo:
-                now = datetime.utcnow()
+                now = datetime.now(timezone.utc)
                 if (promo.valid_from and now < promo.valid_from) or (
                     promo.valid_to and now > promo.valid_to
                 ):
@@ -119,7 +118,7 @@ class OrderService:
         for item in order.items:
             variant = await self.crud.get_variant(item.variant_id)
             if variant:
-                variant.stock = variant.stock * item.quantity
+                variant.stock = variant.stock + item.quantity
                 self.session.add(variant)
 
         # set status
@@ -129,7 +128,9 @@ class OrderService:
     async def assign_courier(self, order_id: int) -> Optional[Courier]:
         # naive best-effort: pick first available & verified courier
         stmt = await self.session.execute(
-            select(Courier).where(Courier.is_available, Courier.is_verified)
+            select(Courier).where(
+                Courier.is_available.is_(True), Courier.is_verified.is_(True)
+            )
         )
         courier = stmt.scalars().first()
         if not courier:

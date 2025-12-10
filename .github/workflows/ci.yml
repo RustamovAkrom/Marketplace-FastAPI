@@ -12,19 +12,31 @@ jobs:
     strategy:
       matrix:
         python-version: [3.12]
+
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
           python-version: ${{ matrix.python-version }}
-      
+          cache: "pip"
+
       - name: Install UV
         run: |
           python -m pip install --upgrade pip
           pip install uv
+
+      - name: Cache UV virtualenv
+        uses: actions/cache@v4
+        with:
+          path: |
+            .venv
+            ~/.cache/uv
+          key: ${{ runner.os }}-uv-${{ hashFiles('pyproject.toml') }}
+          restore-keys: |
+            ${{ runner.os }}-uv-
 
       - name: Sync dependencies
         run: uv sync
@@ -33,19 +45,43 @@ jobs:
         uses: pre-commit/action@v3.0.0
         with:
           extra_args: --all-files
-          
+
       - name: Clear pre-commit cache
         run: pre-commit clean
 
-      - name: Run type checking
+      - name: Run Mypy
         run: uv run mypy src/
 
-      - name: Run linter
+      - name: Run Ruff
         run: uv run ruff check src/
 
-      - name: Run tests
+      - name: Run Tests
         env:
-          # Для CI подставляем тестовые значения
+          ENV: test
           MAIL_USERNAME: test@example.com
           MAIL_PASSWORD: testpass
-        run: uv run pytest -v tests
+        run: uv run pytest -v --disable-warnings --maxfail=1
+      
+      # - name: Install security tools
+      #   run: |
+      #     python -m pip install --upgrade pip
+      #     pip install pip-audit bandit safety
+
+      - name: Dependency security audit (pip-audit)
+        run: |
+          pip-audit --format=human
+
+      - name: Static security scan (Bandit)
+        run: |
+          bandit -r src -ll
+
+      - name: Safety check (optional)
+        run: |
+          safety check
+
+      - name: Upload pytest cache
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pytest-cache
+          path: .pytest_cache/

@@ -27,6 +27,11 @@ class CourierUpdateScheme(CourierBase):
     completed_deliveries: Optional[int] = None
 
 
+class CourierLocationUpdateScheme(BaseModel):
+    lat: Optional[float] = None
+    lon: Optional[float] = None
+
+
 class CourierOutScheme(CourierBase):
     id: int
     user_id: int

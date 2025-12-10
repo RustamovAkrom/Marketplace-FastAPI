@@ -10,13 +10,13 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from core.config import settings
 from db.crud.order import OrderCRUD
 from db.crud.payment import PaymentCRUD
-
-stripe.api_key = settings.STRIPE_SECRET_KEY
-# stripe.api_version = settings.STRIPE_API_VERSION  # опционально
+from db.models.orders import OrderStatus
 
 
 class PaymentService:
     def __init__(self, session: AsyncSession):
+        stripe.api_key = settings.STRIPE_SECRET_KEY
+        stripe.api_version = settings.STRIPE_API_VERSION
         self.session = session
         self.payment_crud = PaymentCRUD(session)
         self.order_crud = OrderCRUD(session)
@@ -51,7 +51,9 @@ class PaymentService:
             raise HTTPException(500, f"Stripe error: {e}")
 
         # update our payment record with intent id
-        await self.payment_crud.update_intent(payment, intent.id, status=intent.status)
+        await self.payment_crud.update_intent(
+            payment, intent.id, status=intent.status or "created"
+        )
         return {
             "client_secret": intent.client_secret,
             "payment_id": payment.id,
@@ -78,7 +80,7 @@ class PaymentService:
             # using order_crud.set_order_status or on_payment_success
             order = await self.order_crud.get_order(payment.order_id)
             if order:
-                await self.order_crud.set_order_status(order, "paid")
+                await self.order_crud.set_order_status(order, OrderStatus.PAID.value)
                 # optionally trigger assign courier:
                 # from services.order_service import OrderService
                 # os = OrderService(self.session)

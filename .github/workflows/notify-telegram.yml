@@ -1,37 +1,28 @@
 name: Telegram Notifications
 
 on:
-  push:
-    branches: [ main ]
-  pull_request:
+  workflow_run:
+    workflows: ["CI Pipeline"]
+    types:
+      - completed
 
 jobs:
   notify:
     runs-on: ubuntu-latest
     steps:
-      - name: Push Notification
-        if: github.event_name == 'push'
+      - name: Send Telegram Message
         uses: appleboy/telegram-action@master
         with:
           token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           to: ${{ secrets.TELEGRAM_CHAT_ID }}
           format: markdown
           message: |
-            📌 *Push Event*  
-            Repository: [${{ github.repository }}](https://github.com/${{ github.repository }})  
-            Branch: `${{ github.ref }}`  
-            Author: `${{ github.actor }}`
+            🚀 *CI Pipeline Finished*
+            Repository: [${{ github.repository }}](https://github.com/${{ github.repository }})
+            Status: *${{ github.event.workflow_run.conclusion }}*
+            Branch: `${{ github.event.workflow_run.head_branch }}`
+            Commit: `${{ github.event.workflow_run.head_sha }}`
 
-      - name: Pull Request Notification
-        if: github.event_name == 'pull_request'
-        uses: appleboy/telegram-action@master
-        with:
-          token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-          to: ${{ secrets.TELEGRAM_CHAT_ID }}
-          format: markdown
-          message: |
-            🔀 *Pull Request Event*  
-            Repository: [${{ github.repository }}](https://github.com/${{ github.repository }})  
-            Action: `${{ github.event.action }}`  
-            PR: [#${{ github.event.number }} - ${{ github.event.pull_request.title }}](${{ github.event.pull_request.html_url }})  
-            Author: `${{ github.event.pull_request.user.login }}`
+            👤 Author: `${{ github.event.workflow_run.actor }}`
+
+            🔗 [Open Workflow Run](${{ github.event.workflow_run.html_url }})

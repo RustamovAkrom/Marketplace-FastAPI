@@ -22,7 +22,9 @@ class Cart(BaseModel):
 class CartItem(BaseModel):
     __tablename__ = "cart_items"
 
-    cart_id: Mapped[int] = mapped_column(ForeignKey("carts.id"), index=True)
+    cart_id: Mapped[int] = mapped_column(
+        ForeignKey("carts.id", ondelete="CASCADE"), index=True
+    )
     variant_id: Mapped[int] = mapped_column(
         ForeignKey("product_variants.id"), index=True
     )

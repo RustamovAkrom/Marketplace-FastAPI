@@ -28,9 +28,7 @@ class CartService:
     ) -> CartItem:
         cart = await self.get_user_cart(user_id)
 
-        variant: ProductVariant | None = await self.product_crud.get_variant_by_id(
-            variant_id
-        )
+        variant: ProductVariant | None = await self.get_variant_by_id(variant_id)
         if not variant:
             raise HTTPException(status_code=404, detail="Variant not found")
 
@@ -41,13 +39,15 @@ class CartService:
 
         if existing_item:
             new_qty = existing_item.quantity + quantity
+            if new_qty > variant.stock:
+                raise HTTPException(400, "Not enough stock")
             return await self.cart_crud.update_item_quantity(existing_item, new_qty)
 
         return await self.cart_crud.add_item(cart, variant, quantity)
 
     async def update_quantity(
         self, user_id: int, variant_id: int, quantity: int
-    ) -> CartItem:
+    ) -> CartItem | None:
         cart = await self.get_user_cart(user_id)
 
         item = await self.cart_crud.get_item(cart.id, variant_id)
@@ -56,7 +56,7 @@ class CartService:
 
         if quantity <= 0:
             await self.cart_crud.remove_item(item)
-            raise HTTPException(status_code=200, detail="Item removed")
+            return None
 
         return await self.cart_crud.update_item_quantity(item, quantity)
 

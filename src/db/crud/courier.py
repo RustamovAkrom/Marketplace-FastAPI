@@ -15,6 +15,10 @@ class CourierCRUD:
     def __init__(self, session: AsyncSession):
         self.session = session
 
+    async def list_all(self) -> Sequence[Courier]:
+        res = await self.session.execute(select(Courier))
+        return res.scalars().all()
+
     async def get_by_id(self, courier_id: int) -> Optional[Courier]:
         obj = await get_or_404(
             self.session.get(Courier, courier_id), "Courier not found"

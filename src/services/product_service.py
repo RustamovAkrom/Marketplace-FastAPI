@@ -101,7 +101,7 @@ class ProductImageService(ProductService):
         return await self.image_crud.create(product.id, image_url)
 
     async def delete_image(self, image_id: int) -> None:
-        image: ProductImage = get_or_404(
+        image: ProductImage = await get_or_404(
             await self.image_crud.get_image(image_id), "Image not found"
         )
         await self.image_crud.delete(image.id)

@@ -6,9 +6,13 @@ from api.v1 import (
     brand,
     cart,
     category,
+    couriers,
     dashboard,
+    deliveries,
+    delivery_address,
     orders,
     payments,
+    promo_codes,
     social_auth,
     upload,
     users,
@@ -37,5 +41,13 @@ api_router.include_router(variants.router, prefix="/products", tags=["Variants"]
 api_router.include_router(images.router, prefix="/products", tags=["Images"])
 api_router.include_router(orders.router, prefix="/orders", tags=["Orders"])
 api_router.include_router(payments.router, prefix="/payments", tags=["Payments"])
+api_router.include_router(
+    promo_codes.router, prefix="/promo_codes", tags=["Promo Codes"]
+)
+api_router.include_router(couriers.router, prefix="/couriers", tags=["Couriers"])
+api_router.include_router(
+    delivery_address.router, prefix="/delivery_addresses", tags=["Delivery Addresses"]
+)
+api_router.include_router(deliveries.router, prefix="/deliveries", tags=["Deliveries"])
 
 __all__ = ("api_router",)
