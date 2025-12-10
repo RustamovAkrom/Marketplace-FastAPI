@@ -94,7 +94,7 @@ jobs:
       # 12️⃣ Сохраняем кэш pytest при падении тестов
       - name: Upload pytest cache
         if: failure()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: pytest-cache
           path: .pytest_cache/
