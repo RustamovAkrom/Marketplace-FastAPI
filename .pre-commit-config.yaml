@@ -34,7 +34,7 @@ repos:
         name: Run CI checks before push
         entry: uv run mypy src/ && uv run ruff check src/ && uv run pytest -v --maxfail=1
         language: system
-        stages: [push]
+        stages: [pre-push]
 # repos:
 #   - repo: https://github.com/psf/black
 #     rev: 24.1.0

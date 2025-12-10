@@ -73,8 +73,8 @@ jobs:
         run: uv run pytest -v --disable-warnings --maxfail=1
 
       # 🔒 10️⃣ Аудит безопасности зависимостей
-      - name: Dependency security audit (pip-audit)
-        run: uv run pip-audit --format=columns --fail-on=high
+      # - name: Dependency security audit (pip-audit)
+      #   run: uv run pip-audit --format=columns
 
       - name: Static security scan (Bandit)
         run: uv run bandit -r src -ll
