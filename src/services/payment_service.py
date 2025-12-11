@@ -7,7 +7,7 @@ import stripe
 from fastapi import HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from core.config import settings
+from core.settings import settings
 from db.crud.order import OrderCRUD
 from db.crud.payment import PaymentCRUD
 from db.models.orders import OrderStatus

@@ -3,7 +3,6 @@ from datetime import datetime, timedelta
 from fastapi import Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from core.config import settings
 from core.exceptions import APIException
 from core.security import (
     create_access_token,
@@ -12,6 +11,7 @@ from core.security import (
     hash_password,
     verify_password,
 )
+from core.settings import settings
 from db.crud.token import TokenCRUD
 from db.crud.user import UserCRUD
 from db.dependencies.sessions import get_db_session

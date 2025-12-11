@@ -1,7 +1,7 @@
 # core/email.py
 from fastapi_mail import ConnectionConfig, FastMail
 
-from core.config import settings
+from core.settings import settings
 
 conf = ConnectionConfig(
     MAIL_USERNAME=settings.SMTP_USER,

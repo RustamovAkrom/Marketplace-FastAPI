@@ -13,7 +13,7 @@ from sqlalchemy.ext.asyncio import (
 )
 
 from src.app import create_app
-from src.core.config import get_app_settings
+from src.core.settings import settings
 from src.db.dependencies.sessions import get_db_session
 from src.db.meta import meta
 from src.db.models import load_all_models
@@ -25,7 +25,6 @@ from src.db.models import load_all_models
 @pytest.fixture(scope="session")
 async def _engine() -> AsyncGenerator[AsyncEngine, None]:
     """Создаёт тестовый движок и создаёт таблицы в памяти."""
-    settings = get_app_settings()
 
     load_all_models()  # <-- обязательно, иначе модели не загрузятся
 

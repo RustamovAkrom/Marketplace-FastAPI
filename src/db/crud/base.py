@@ -2,10 +2,10 @@
 from fastapi import APIRouter, Depends, HTTPException, UploadFile
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from core import config
+from core.settings import settings
 from db.crud.base import get_crud_for_model  # универсальная функция для CRUD
 from db.dependencies.sessions import get_db_session
-from services.file_service import save_file
+from services.file_service import FileService
 
 router = APIRouter(prefix="/upload", tags=["Upload"])
 
@@ -40,7 +40,9 @@ async def upload_file(
         )
 
     # Сохраняем файл
-    relative_path = await save_file(file, model_name, instance_id, filetype)
+    relative_path = await FileService.save_image(
+        file, model_name, instance_id, filetype
+    )
 
     # Обновляем поле модели
     current_value = getattr(instance, field_name, None)
@@ -56,4 +58,4 @@ async def upload_file(
     await db.commit()
     await db.refresh(instance)
 
-    return {"url": f"{config.MEDIA_URL}{relative_path}", "field": field_name}
+    return {"url": f"{settings.MEDIA_URL}{relative_path}", "field": field_name}

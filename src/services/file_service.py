@@ -3,7 +3,7 @@ from pathlib import Path
 
 from fastapi import HTTPException, UploadFile
 
-from core.config import settings
+from core.settings import settings
 
 ALLOWED_CONTENT_TYPES = ["image/jpeg", "image/png", "image/gif", "image/webp"]
 

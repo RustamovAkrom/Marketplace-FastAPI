@@ -5,7 +5,7 @@ from alembic import context
 from sqlalchemy.ext.asyncio import create_async_engine
 from sqlalchemy.future import Connection
 
-from core.config import settings
+from core.settings import settings
 from db.meta import meta
 from db.models import load_all_models
 

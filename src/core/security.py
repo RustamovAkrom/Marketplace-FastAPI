@@ -5,7 +5,7 @@ from typing import Any, Dict, Optional, Union
 from jose import ExpiredSignatureError, JWTError, jwt
 from passlib.context import CryptContext
 
-from core.config import settings
+from core.settings import settings
 
 pwd_context = CryptContext(schemes=["argon2"], deprecated="auto")
 

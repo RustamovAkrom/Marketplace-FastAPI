@@ -6,7 +6,7 @@ from fastapi import APIRouter, Header, Response
 from prometheus_client import CONTENT_TYPE_LATEST, REGISTRY, generate_latest
 from pydantic import BaseModel
 
-from core.config import settings
+from core.settings import settings
 
 router = APIRouter(prefix="/monitoring", tags=["monitoring"])
 

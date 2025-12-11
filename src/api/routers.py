@@ -18,7 +18,7 @@ from api.v1 import (
     users,
 )
 from api.v1.products import images, products, variants
-from core.config import settings
+from core.settings import settings
 
 api_router = APIRouter(
     prefix=f"{settings.API_V1_PREFIX}",

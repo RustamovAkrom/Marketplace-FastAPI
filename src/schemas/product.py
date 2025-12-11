@@ -1,6 +1,6 @@
 from typing import List, Optional
 
-from pydantic import BaseModel, ConfigDict, Field, validator
+from pydantic import BaseModel, ConfigDict, Field
 
 # * Product Images *
 
@@ -56,14 +56,6 @@ class ProductCreateScheme(BaseModel):
     seller_id: Optional[int] = None
     images: Optional[List[ProductImageOutScheme]] = []
     variants: Optional[List[ProductVariantsOutScheme]] = []
-
-    @validator("images", pre=True, always=True)
-    def ensure_list_images(cls, v):
-        raise v or []
-
-    @validator("variants", pre=True, always=True)
-    def ensure_list_variants(cls, v):
-        return v or []
 
 
 class ProductUpdateScheme(BaseModel):

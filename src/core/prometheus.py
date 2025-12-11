@@ -7,7 +7,7 @@ from fastapi import Request, Response
 from prometheus_client import Counter, Gauge, Histogram
 from starlette.middleware.base import BaseHTTPMiddleware
 
-from core.config import settings
+from core.settings import settings
 
 
 @dataclass

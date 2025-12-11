@@ -3,7 +3,7 @@ import stripe
 from fastapi import APIRouter, Depends, Header, HTTPException, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from core.config import settings
+from core.settings import settings
 from db.dependencies.sessions import get_db_session
 from services.payment_service import PaymentService
 

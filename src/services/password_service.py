@@ -3,8 +3,8 @@ from datetime import timedelta
 from fastapi import Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from core.config import settings
 from core.security import create_access_token, decode_token
+from core.settings import settings
 from db.crud.token import TokenCRUD
 from db.crud.user import UserCRUD
 from db.dependencies.sessions import get_db_session

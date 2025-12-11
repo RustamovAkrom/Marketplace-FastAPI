@@ -1,5 +1,5 @@
 # src/schemas/cart.py
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 
 
 class AddToCartScheme(BaseModel):
@@ -18,8 +18,7 @@ class CartItemScheme(BaseModel):
     quantity: int
     price: float
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class CartResponse(BaseModel):
@@ -27,5 +26,4 @@ class CartResponse(BaseModel):
     user_id: int
     items: list[CartItemScheme]
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)

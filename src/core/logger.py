@@ -2,7 +2,7 @@ import sys
 
 from loguru import logger
 
-from core.config import settings
+from core.settings import settings
 
 
 def configure_logger() -> None:

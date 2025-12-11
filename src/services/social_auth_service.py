@@ -2,8 +2,8 @@ from fastapi import Depends, HTTPException
 from httpx import AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from core.config import settings
 from core.security import create_access_token, create_refresh_token
+from core.settings import settings
 from db.crud.user import UserCRUD
 from db.dependencies.sessions import get_db_session
 

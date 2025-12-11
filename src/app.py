@@ -6,13 +6,13 @@ from fastapi.responses import ORJSONResponse
 from fastapi.staticfiles import StaticFiles
 
 from api.routers import api_router
-from core.config import settings
 from core.exceptions import register_error_handler
 from core.lifespan import lifespan
 from core.logger import configure_logger
 from core.monitoring import router as monitoring_router
 from core.prometheus import MetricsMiddleware
 from core.sentry import init_sentry
+from core.settings import settings
 from middlewares.request_id_middleware import RequestIDMiddleware
 
 
