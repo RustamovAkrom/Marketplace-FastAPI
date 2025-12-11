@@ -3,34 +3,34 @@ name: "CodeQL"
 on:
   push:
     branches: [ main ]
-  pull_request:
+  pull_request_target:    # <-- вместо pull_request
     branches: [ main ]
   schedule:
-    - cron: '0 0 * * 0'  # опционально, раз в неделю
+    - cron: '0 0 * * 0'  # раз в неделю
+
+permissions:
+  contents: read
+  security-events: read   # безопасно для форков
 
 jobs:
   codeql:
     name: Analyze
     runs-on: ubuntu-latest
-    permissions:
-      actions: read
-      contents: read
-      security-events: write
     strategy:
       fail-fast: false
       matrix:
-        language: [ 'python' ]  # укажи нужные языки
+        language: [ 'python' ]
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v3
+      - name: Checkout repository
+        uses: actions/checkout@v3
 
-    - name: Initialize CodeQL
-      uses: github/codeql-action/init@v3
-      with:
-        languages: ${{ matrix.language }}
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: ${{ matrix.language }}
 
-    - name: Autobuild
-      uses: github/codeql-action/autobuild@v3
+      - name: Autobuild
+        uses: github/codeql-action/autobuild@v3
 
-    - name: Perform CodeQL Analysis
-      uses: github/codeql-action/analyze@v3
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v3

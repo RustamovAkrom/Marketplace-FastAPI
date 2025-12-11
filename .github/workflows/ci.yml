@@ -82,15 +82,6 @@ jobs:
       # - name: Safety scan
       #   run: uv run safety scan
 
-      # 11️⃣ CodeQL security scanning
-      - name: Initialize CodeQL
-        uses: github/codeql-action/init@v3
-        with:
-          languages: python
-
-      - name: Perform CodeQL Analysis
-        uses: github/codeql-action/analyze@v3
-
       # 12️⃣ Сохраняем кэш pytest при падении тестов
       - name: Upload pytest cache
         if: failure()
