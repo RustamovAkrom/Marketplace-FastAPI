@@ -10,7 +10,8 @@ on:
 
 permissions:
   contents: read
-  security-events: read   # безопасно для форков
+  actions: read
+  security-events: write   # безопасно для форков
 
 jobs:
   codeql:
