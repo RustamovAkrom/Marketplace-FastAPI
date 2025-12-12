@@ -1,17 +1,10 @@
-# src/api/v1/payments.py
 import stripe
 from fastapi import APIRouter, Depends, Header, HTTPException, Request
-from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.settings import settings
-from db.dependencies.sessions import get_db_session
-from services.payment_service import PaymentService
+from services.payment_service import PaymentService, get_payment_service
 
 router = APIRouter(prefix="/payments", tags=["Payments"])
-
-
-async def get_payment_service(session: AsyncSession = Depends(get_db_session)):
-    return PaymentService(session)
 
 
 # 1) create payment intent for order (returns client_secret)

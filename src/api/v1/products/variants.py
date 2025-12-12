@@ -3,24 +3,19 @@ from __future__ import annotations
 from typing import List
 
 from fastapi import APIRouter, Depends, status
-from sqlalchemy.ext.asyncio import AsyncSession
 
 from db.dependencies.auth import ADMIN_ROLE, SELLER_ROLE, require_roles
-from db.dependencies.sessions import get_db_session
 from schemas.product import (
     ProductVariantCreateScheme,
     ProductVariantsOutScheme,
     ProductVariantUpdateScheme,
 )
-from services.product_service import ProductVariantsService
+from services.product_service import (
+    ProductVariantsService,
+    get_product_variants_service,
+)
 
 router = APIRouter(prefix="/products", tags=["Product Variants"])
-
-
-async def get_product_variants_service(
-    session: AsyncSession = Depends(get_db_session),
-) -> ProductVariantsService:
-    return ProductVariantsService(session)
 
 
 # Product Variants endpoints

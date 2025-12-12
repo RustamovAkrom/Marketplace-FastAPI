@@ -3,22 +3,14 @@ from __future__ import annotations
 from typing import List
 
 from fastapi import APIRouter, Depends, UploadFile, status
-from sqlalchemy.ext.asyncio import AsyncSession
 
 from db.dependencies.auth import ADMIN_ROLE, SELLER_ROLE, require_roles
-from db.dependencies.sessions import get_db_session
 from schemas.product import (
     ProductImageOutScheme,
 )
-from services.product_service import ProductImageService
+from services.product_service import ProductImageService, get_product_images_service
 
 router = APIRouter(prefix="/products", tags=["Product Images"])
-
-
-async def get_product_images_service(
-    session: AsyncSession = Depends(get_db_session),
-) -> ProductImageService:
-    return ProductImageService(session)
 
 
 # Product Image endpoints
@@ -33,7 +25,7 @@ async def list_images(
 @router.post(
     "/{product_id}/images",
     response_model=ProductImageOutScheme,
-    #  dependencies=[Depends(require_roles(ADMIN_ROLE, SELLER_ROLE))]
+    dependencies=[Depends(require_roles(ADMIN_ROLE, SELLER_ROLE))],
 )
 async def upload_image(
     product_id: int,

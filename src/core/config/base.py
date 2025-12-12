@@ -24,6 +24,8 @@ class BaseAppConfig(BaseSettings):
     CORS_ORIGINS: list[str] = ["*"]
 
     SENTRY_DSN: str | None = None
+    SENTRY_TRACES_SAMPLE_RATE: float | None = None
+    SENTRY_PROFILES_SAMPLE_RATE: float | None = None
 
     PROMETHEUS_ENABLED: bool = True
     PROMETHEUS_PATH: str = "/metrics"

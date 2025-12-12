@@ -1,25 +1,20 @@
 from typing import List
 
 from fastapi import APIRouter, Depends, status
-from sqlalchemy.ext.asyncio import AsyncSession
 
 from db.dependencies.auth import get_current_user
-from db.dependencies.sessions import get_db_session
 from db.models.users import User
 from schemas.delivery_address import (
     DeliveryAddressCreateScheme,
     DeliveryAddressOutScheme,
     DeliveryAddressUpdateScheme,
 )
-from services.delivery_address_service import DeliveryAddressService
+from services.delivery_address_service import (
+    DeliveryAddressService,
+    get_delivery_address_service,
+)
 
 router = APIRouter(prefix="/delivery-addresses", tags=["Delivery Addresses"])
-
-
-async def get_delivery_address_service(
-    session: AsyncSession = Depends(get_db_session),
-) -> DeliveryAddressService:
-    return DeliveryAddressService(session)
 
 
 @router.get("/", response_model=List[DeliveryAddressOutScheme])

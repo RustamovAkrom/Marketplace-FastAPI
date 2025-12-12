@@ -1,0 +1,112 @@
+version: "3.9"
+
+services:
+  web:
+    build:
+      context: ../../..
+      dockerfile: deployments/compose/backend/web/Dockerfile
+    command: /start
+    env_file:
+      - .env
+    restart: always
+    volumes:
+      - ../../../src:/app
+    ports:
+      - "${PORT:-8001}:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - backend
+
+  postgres:
+    image: postgres:16
+    restart: always
+    env_file: .env
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - backend
+
+  rabbitmq:
+    image: rabbitmq:3.12-management
+    restart: always
+    env_file: .env
+    ports:
+      - "${RABBITMQ_PORT:-15672}:15672"
+      - "${AMQP_PORT:-5672}:5672"
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    healthcheck:
+      test: ["CMD", "rabbitmqctl", "status"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - backend
+
+  celery_worker:
+    build:
+      context: ../../..
+      dockerfile: deployments/compose/backend/web/Dockerfile
+    command: /start-celeryworker
+    env_file: .env
+    restart: always
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - backend
+    volumes:
+      - ../../../src:/app
+
+  celery_beat:
+    build:
+      context: ../../..
+      dockerfile: deployments/compose/backend/web/Dockerfile
+    command: /start-celerybeat
+    env_file: .env
+    restart: always
+    networks:
+      - backend
+    volumes:
+      - ../../../src:/app
+
+  celery_flower:
+    build:
+      context: ../../..
+      dockerfile: deployments/compose/backend/web/Dockerfile
+    command: /start-flower
+    env_file: .env
+    restart: always
+    ports:
+      - "${CELERY_FLOWER_PORT:-5555}:5555"
+    networks:
+      - backend
+    volumes:
+      - ../../../src:/app
+
+  prometheus:
+    image: prom/prometheus:latest
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+    ports:
+      - "9090:9090"
+    networks:
+      - backend
+    restart: always
+
+volumes:
+  pg_data:
+  rabbitmq_data:
+
+networks:
+  backend:
+    driver: bridge

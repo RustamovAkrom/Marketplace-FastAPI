@@ -4,12 +4,13 @@ from __future__ import annotations
 import asyncio
 
 import stripe
-from fastapi import HTTPException
+from fastapi import Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.settings import settings
 from db.crud.order import OrderCRUD
 from db.crud.payment import PaymentCRUD
+from db.dependencies.sessions import get_db_session
 from db.models.orders import OrderStatus
 
 
@@ -82,10 +83,15 @@ class PaymentService:
             if order:
                 await self.order_crud.set_order_status(order, OrderStatus.PAID.value)
                 # optionally trigger assign courier:
-                # from services.order_service import OrderService
-                # os = OrderService(self.session)
-                # await os.assign_courier(order.id)
+                from services.order_service import OrderService
+
+                order_s = OrderService(self.session)
+                await order_s.assign_courier(order.id)
 
             return {"status": "ok"}
         # handle other events as needed
         return {"status": "ignored", "type": typ}
+
+
+async def get_payment_service(session: AsyncSession = Depends(get_db_session)):
+    return PaymentService(session)

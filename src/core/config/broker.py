@@ -1,8 +1,8 @@
 from pydantic_settings import BaseSettings
 
 
-class RedisConfig(BaseSettings):
-    BROKER: str = "redis"
+class BrokerConfig(BaseSettings):
+    BROKER: str = "rabbitmq"
 
     REDIS_HOST: str = "localhost"
     REDIS_PORT: int = 6379

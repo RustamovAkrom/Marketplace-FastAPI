@@ -62,3 +62,9 @@ class DeliveryService:
         await self.session.commit()
         await self.session.refresh(delivery)
         return delivery
+
+
+async def get_delivery_service(
+    session: AsyncSession = Depends(get_db_session),
+) -> DeliveryService:
+    return DeliveryService(session)

@@ -4,53 +4,6 @@
 
 Designed following **clean architecture principles**, the project is maintainable, extendable, and production‑ready.
 
-# 🧰 Used Technologies
-
-Below is the list of core technologies and dependencies used in this project, based on the project configuration:
-
-### 🔧 Runtime & Frameworks
-
-* **Python 3.12+** — [https://www.python.org/](https://www.python.org/)
-* **FastAPI** — [https://fastapi.tiangolo.com/](https://fastapi.tiangolo.com/)
-* **Uvicorn** — [https://www.uvicorn.org/](https://www.uvicorn.org/)
-* **SQLAlchemy 2.0** — [https://docs.sqlalchemy.org/](https://docs.sqlalchemy.org/)
-* **Alembic** — [https://alembic.sqlalchemy.org/](https://alembic.sqlalchemy.org/)
-
-### 📦 Async & Utilities
-
-* **aiofiles** — [https://github.com/Tinche/aiofiles](https://github.com/Tinche/aiofiles)
-* **httpx** — [https://www.python-httpx.org/](https://www.python-httpx.org/)
-* **orjson** — [https://github.com/ijl/orjson](https://github.com/ijl/orjson)
-* **argon2-cffi** — [https://argon2-cffi.readthedocs.io/](https://argon2-cffi.readthedocs.io/)
-* **passlib[bcrypt]** — [https://passlib.readthedocs.io/](https://passlib.readthedocs.io/)
-* **python-jose** — [https://github.com/mpdavis/python-jose](https://github.com/mpdavis/python-jose)
-* **python-multipart** — [https://andrew-d.github.io/python-multipart/](https://andrew-d.github.io/python-multipart/)
-* **pydantic-settings** — [https://docs.pydantic.dev/](https://docs.pydantic.dev/)
-* **python-dotenv** — [https://github.com/theskumar/python-dotenv](https://github.com/theskumar/python-dotenv)
-
-### 📨 Email & Background Tasks
-
-* **FastAPI-Mail** — [https://sabuhish.github.io/fastapi-mail/](https://sabuhish.github.io/fastapi-mail/)
-* **Celery** — [https://docs.celeryq.dev/](https://docs.celeryq.dev/)
-* **Flower (Celery Monitoring)** — [https://flower.readthedocs.io/](https://flower.readthedocs.io/)
-
-### 🧪 Testing
-
-* **pytest** — [https://docs.pytest.org/](https://docs.pytest.org/)
-* **pytest-asyncio** — [https://github.com/pytest-dev/pytest-asyncio](https://github.com/pytest-dev/pytest-asyncio)
-* **pytest-cov** — [https://github.com/pytest-dev/pytest-cov](https://github.com/pytest-dev/pytest-cov)
-
-### 🛠 Development Tools
-
-* **black** — [https://github.com/psf/black](https://github.com/psf/black)
-* **isort** — [https://pycqa.github.io/isort/](https://pycqa.github.io/isort/)
-* **ruff** — [https://docs.astral.sh/ruff/](https://docs.astral.sh/ruff/)
-* **mypy** — [https://mypy-lang.org/](https://mypy-lang.org/)
-* **pre-commit** — [https://pre-commit.com/](https://pre-commit.com/)
-* **loguru** — [https://github.com/Delgan/loguru](https://github.com/Delgan/loguru)
-
----
-
 ## 🚀 Features
 
 ### 👤 Users & Authentication
@@ -176,12 +129,7 @@ src/
 
 ---
 
-## ⚙️ Environment Variables Example (`.env-example`)
 
-```env
-# Use this file to configure your development environment
-# Copy it to .env and fill your credentials
-```
 
 ## ▶️ Getting Started (Without Docker)
 

@@ -1,18 +1,17 @@
-# src/services/cart_service.py
 from __future__ import annotations
 
 from fastapi import Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from db.crud.cart import CartCRUD
-from db.crud.product import ProductCRUD  # ты будешь использовать свой
+from db.crud.product import ProductCRUD
 from db.dependencies.sessions import get_db_session
 from db.models.carts import Cart, CartItem
 from db.models.products import ProductVariant
 
 
 class CartService:
-    def __init__(self, session: AsyncSession = Depends(get_db_session)):
+    def __init__(self, session: AsyncSession):
         self.session = session
         self.cart_crud = CartCRUD(session)
         self.product_crud = ProductCRUD(session)
@@ -75,3 +74,7 @@ class CartService:
 
     async def get_variant_by_id(self, variant_id: int) -> ProductVariant | None:
         return await self.session.get(ProductVariant, variant_id)
+
+
+def get_cart_service(session: AsyncSession = Depends(get_db_session)) -> CartService:
+    return CartService(session)

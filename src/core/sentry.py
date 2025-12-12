@@ -25,8 +25,8 @@ def init_sentry() -> None:
             SqlalchemyIntegration(),
             RedisIntegration(),
         ],
-        traces_sample_rate=0.1 if settings.ENV == "prod" else 0.5,
-        profiles_sample_rate=0.0 if settings.ENV == "dev" else 0.01,
+        traces_sample_rate=settings.SENTRY_TRACES_SAMPLE_RATE,
+        profiles_sample_rate=settings.SENTRY_PROFILES_SAMPLE_RATE,
         send_default_pii=False,  # avoid leaking user PII by default
         debug=False,
     )

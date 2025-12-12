@@ -28,3 +28,9 @@ class PromoCodeService:
 
     async def validate_code(self, code: str) -> PromoCode:
         return await self.crud.get_by_code(code)
+
+
+async def get_promo_service(
+    session: AsyncSession = Depends(get_db_session),
+) -> PromoCodeService:
+    return PromoCodeService(session)

@@ -1,28 +1,21 @@
 from fastapi import APIRouter, Body, Depends
-from sqlalchemy.ext.asyncio import AsyncSession
 
 from db.dependencies.auth import ADMIN_ROLE, get_current_user, require_roles
-from db.dependencies.sessions import get_db_session
 from db.models.users import User
-from schemas.delivery import DeliveryOutScheme  # assume exists
-from services.delivery_service import DeliveryService
+from schemas.delivery import DeliveryOutScheme
+from services.delivery_service import DeliveryService, get_delivery_service
+from utils.shortcuts import get_or_404
 
 router = APIRouter(prefix="/deliveries", tags=["Deliveries"])
-
-
-async def get_delivery_service(
-    session: AsyncSession = Depends(get_db_session),
-) -> DeliveryService:
-    return DeliveryService(session)
 
 
 @router.get("/order/{order_id}", response_model=DeliveryOutScheme)
 async def get_delivery(
     order_id: int, service: DeliveryService = Depends(get_delivery_service)
 ):
-    delivery = await service.get_delivery_for_order(order_id)
-    if not delivery:
-        return {"detail": "Not found"}, 404
+    delivery = await get_or_404(
+        service.get_delivery_for_order(order_id), "Order not found"
+    )
     return delivery
 
 

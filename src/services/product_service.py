@@ -108,3 +108,21 @@ class ProductImageService(ProductService):
 
     async def list_images(self, product_id: int):
         return await self.image_crud.get_images(product_id)
+
+
+async def get_product_images_service(
+    session: AsyncSession = Depends(get_db_session),
+) -> ProductImageService:
+    return ProductImageService(session)
+
+
+async def get_product_service(
+    session: AsyncSession = Depends(get_db_session),
+) -> ProductService:
+    return ProductService(session)
+
+
+async def get_product_variants_service(
+    session: AsyncSession = Depends(get_db_session),
+) -> ProductVariantsService:
+    return ProductVariantsService(session)

@@ -1,32 +1,21 @@
 from typing import List
 
 from fastapi import APIRouter, Depends, status
-from sqlalchemy.ext.asyncio import AsyncSession
 
 from db.dependencies.auth import ADMIN_ROLE, require_roles
-from db.dependencies.sessions import get_db_session
 from schemas.promo_code import (
     PromoCodeCreateScheme,
     PromoCodeOutScheme,
     PromoCodeUpdateScheme,
 )
-from services.promo_service import PromoCodeService
+from services.promo_service import PromoCodeService, get_promo_service
 
 router = APIRouter(prefix="/promo-codes", tags=["Promo Codes"])
 
 
-async def get_promo_service(
-    session: AsyncSession = Depends(get_db_session),
-) -> PromoCodeService:
-    return PromoCodeService(session)
-
-
 @router.get("/", response_model=List[PromoCodeOutScheme])
 async def list_promos(service: PromoCodeService = Depends(get_promo_service)):
-    # currently PromoCodeCRUD has no list method — if needed add it.
-    return (
-        await service.crud.session.execute
-    )  # replace with service.crud.list_all() if added
+    return await service.crud.list_all()
 
 
 @router.post(

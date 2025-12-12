@@ -1,25 +1,17 @@
 from typing import List
 
 from fastapi import APIRouter, Body, Depends, status
-from sqlalchemy.ext.asyncio import AsyncSession
 
 from db.dependencies.auth import ADMIN_ROLE, require_roles
-from db.dependencies.sessions import get_db_session
 from schemas.courier import (
     CourierCreateScheme,
     CourierLocationUpdateScheme,
     CourierOutScheme,
     CourierUpdateScheme,
 )
-from services.courier_service import CourierService
+from services.courier_service import CourierService, get_courier_service
 
 router = APIRouter(prefix="/couriers", tags=["Couriers"])
-
-
-async def get_courier_service(
-    session: AsyncSession = Depends(get_db_session),
-) -> CourierService:
-    return CourierService(session)
 
 
 @router.get(
@@ -27,11 +19,12 @@ async def get_courier_service(
     response_model=List[CourierOutScheme],
     dependencies=[Depends(require_roles(ADMIN_ROLE))],
 )
-async def list_all_couriers(service: CourierService = Depends(get_courier_service)):
+async def list_all_couriers(
+    service: CourierService = Depends(get_courier_service),
+):
+
     # admin-only listing: CourierCRUD should expose list_all
-    return (
-        await service.crud.session.execute
-    )  # <-- replace with service.crud.list_all() if implemented
+    return await service.crud.list_all()
 
 
 @router.post("/", response_model=CourierOutScheme, status_code=status.HTTP_201_CREATED)

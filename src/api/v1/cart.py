@@ -1,22 +1,16 @@
 # src/api/endpoints/cart.py
 from fastapi import APIRouter, Depends
-from sqlalchemy.ext.asyncio import AsyncSession
 
 from db.dependencies.auth import get_current_user  # твоя функция
-from db.dependencies.sessions import get_db_session
 from db.models.users import User
 from schemas.cart import (
     AddToCartScheme,
     CartResponse,
     UpdateQuantityScheme,
 )
-from services.cart_service import CartService
+from services.cart_service import CartService, get_cart_service
 
 router = APIRouter(prefix="/carts", tags=["Carts"])
-
-
-def get_cart_service(session: AsyncSession = Depends(get_db_session)) -> CartService:
-    return CartService(session)
 
 
 @router.get("/", response_model=CartResponse)

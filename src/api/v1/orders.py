@@ -1,18 +1,10 @@
 from fastapi import APIRouter, Depends, status
-from sqlalchemy.ext.asyncio import AsyncSession
 
-from db.dependencies.sessions import get_db_session
 from schemas.order import CheckoutRequestScheme, OrderOutScheme
-from services.order_service import OrderService
+from services.order_service import OrderService, get_order_service
 from utils.shortcuts import get_or_404
 
 router = APIRouter(prefix="/orders", tags=["Orders"])
-
-
-async def get_order_service(
-    session: AsyncSession = Depends(get_db_session),
-) -> OrderService:
-    return OrderService(session)
 
 
 @router.post(

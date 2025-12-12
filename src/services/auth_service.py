@@ -33,7 +33,7 @@ from tasks.user_tasks import (
 class AuthService:
     def __init__(
         self,
-        session: AsyncSession = Depends(get_db_session),
+        session: AsyncSession,
     ):
         self.session = session
         self.user_crud = UserCRUD(self.session)
@@ -157,6 +157,11 @@ class AuthService:
         )
         return {"access_token": access_token, "token_type": "bearer"}
 
+
+class VerificationService(AuthService):
+    def __init__(self, session: AsyncSession):
+        super().__init__(session)
+
     async def verify_email(self, token: str) -> dict:
         """
         Verify email using a token (from email link)
@@ -247,4 +252,13 @@ class AuthService:
         return {"msg": f"{type_.capitalize()} verification token sent", "token": token}
 
 
-__all__ = ("AuthService",)
+async def get_auth_service(
+    session: AsyncSession = Depends(get_db_session),
+) -> AuthService:
+    return AuthService(session)
+
+
+async def get_verification_service(
+    session: AsyncSession = Depends(get_db_session),
+) -> VerificationService:
+    return VerificationService(session)

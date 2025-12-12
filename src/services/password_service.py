@@ -15,7 +15,7 @@ from tasks.send_reset_password import send_reset_password_task
 class PasswordService:
     def __init__(
         self,
-        session: AsyncSession = Depends(get_db_session),
+        session: AsyncSession,
     ):
         self.session = session
         self.user_crud = UserCRUD(session)
@@ -64,6 +64,3 @@ async def get_password_service(
     session: AsyncSession = Depends(get_db_session),
 ) -> PasswordService:
     return PasswordService(session)
-
-
-__all__ = ("PasswordService", "get_password_service")

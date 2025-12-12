@@ -16,6 +16,10 @@ class PromoCodeCRUD:
     def __init__(self, session: AsyncSession):
         self.session = session
 
+    async def list_all(self):
+        obj = await self.session.execute(select(PromoCode))
+        return obj.scalars().all()
+
     async def create(self, data: PromoCodeCreateScheme) -> PromoCode:
         exists = await self.session.execute(
             select(PromoCode).where(PromoCode.code == data.code)

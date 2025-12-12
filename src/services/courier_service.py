@@ -40,3 +40,9 @@ class CourierService:
     async def set_availability(self, courier_id: int, available: bool) -> Courier:
         courier = await self.get_by_id(courier_id)
         return await self.crud.set_availability(courier, available)
+
+
+async def get_courier_service(
+    session: AsyncSession = Depends(get_db_session),
+) -> CourierService:
+    return CourierService(session)

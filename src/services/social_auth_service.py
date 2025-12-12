@@ -78,3 +78,9 @@ class SocialAuthService:
         access = create_access_token(subject=user.id)
         refresh = create_refresh_token(subject=user.id)
         return {"access_token": access, "refresh_token": refresh}
+
+
+async def get_social_service(
+    session: AsyncSession = Depends(get_db_session),
+) -> SocialAuthService:
+    return SocialAuthService(session)

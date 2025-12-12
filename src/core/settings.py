@@ -2,9 +2,9 @@ from functools import lru_cache
 
 from core.config.auth import AuthConfig
 from core.config.base import BaseAppConfig
+from core.config.broker import BrokerConfig
 from core.config.database import DatabaseConfig
 from core.config.email import EmailConfig
-from core.config.redis import RedisConfig
 from core.config.social import SocialAuthConfig
 from core.config.stripe import StripeConfig
 
@@ -14,7 +14,7 @@ class Settings(
     AuthConfig,
     DatabaseConfig,
     StripeConfig,
-    RedisConfig,
+    BrokerConfig,
     EmailConfig,
     SocialAuthConfig,
 ):

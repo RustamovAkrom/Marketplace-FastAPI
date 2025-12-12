@@ -3,24 +3,16 @@ from __future__ import annotations
 from typing import List
 
 from fastapi import APIRouter, Depends, status
-from sqlalchemy.ext.asyncio import AsyncSession
 
 from db.dependencies.auth import ADMIN_ROLE, SELLER_ROLE, require_roles
-from db.dependencies.sessions import get_db_session
 from schemas.product import (
     ProductCreateScheme,
     ProductOutScheme,
     ProductUpdateScheme,
 )
-from services.product_service import ProductService
+from services.product_service import ProductService, get_product_service
 
 router = APIRouter(prefix="/products", tags=['Products'])
-
-
-async def get_product_service(
-    session: AsyncSession = Depends(get_db_session),
-) -> ProductService:
-    return ProductService(session)
 
 
 @router.get("/", response_model=List[ProductOutScheme])

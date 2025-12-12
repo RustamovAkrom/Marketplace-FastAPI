@@ -40,3 +40,9 @@ class DeliveryAddressService:
 
     async def delete_address(self, address_id: int) -> None:
         await self.crud.delete(address_id)
+
+
+async def get_delivery_address_service(
+    session: AsyncSession = Depends(get_db_session),
+) -> DeliveryAddressService:
+    return DeliveryAddressService(session)

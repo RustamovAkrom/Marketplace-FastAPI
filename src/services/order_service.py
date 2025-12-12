@@ -3,11 +3,12 @@ from __future__ import annotations
 from datetime import datetime, timezone
 from typing import Dict, List, Optional
 
-from fastapi import HTTPException
+from fastapi import Depends, HTTPException
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from db.crud.order import OrderCRUD
+from db.dependencies.sessions import get_db_session
 from db.models.couriers import Courier, CourierStatus
 from db.models.delivery import DeliveryStatus
 from db.models.orders import Order, OrderItem, OrderStatus
@@ -156,3 +157,9 @@ class OrderService:
         await self.session.refresh(delivery)
         await self.session.refresh(courier)
         return courier
+
+
+async def get_order_service(
+    session: AsyncSession = Depends(get_db_session),
+) -> OrderService:
+    return OrderService(session)
