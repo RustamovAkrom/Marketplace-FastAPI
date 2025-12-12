@@ -42,7 +42,7 @@ fastapi==0.122.0
 fastapi-mail==1.5.8
 filelock==3.20.0
 flower==2.0.1
-greenlet==3.2.4
+greenlet==3.3.0
 h11==0.16.0
 httpcore==1.0.9
 httptools==0.7.1
