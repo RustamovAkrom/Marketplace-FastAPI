@@ -83,7 +83,7 @@ pre-commit==4.5.0
 prometheus-client==0.23.1
 prometheus-fastapi-instrumentator==7.1.0
 prompt-toolkit==3.0.52
-psycopg-binary==3.2.13
+psycopg-binary==3.3.2
 py-serializable==2.1.0
 pyasn1==0.6.1
 pycparser==2.23
