@@ -1,5 +1,7 @@
 # 🛒 Marketplace — Modern E‑Commerce Backend Platform
 
+[url roadmap](https://roadmap.sh/projects/scalable-ecommerce-platform)
+
 **Marketplace** is a high‑performance, scalable, and modular e‑commerce backend built with **FastAPI**. It provides a fully structured architecture that covers every essential part of an online marketplace: user authentication, product catalog, carts, orders, delivery logistics, image upload system, and review management.
 
 Designed following **clean architecture principles**, the project is maintainable, extendable, and production‑ready.
